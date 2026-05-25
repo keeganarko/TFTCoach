@@ -1,0 +1,21 @@
+TFT Coach Session — 2026-05-25_10-57
+Rank: Gold | Calls: 1 | Cost: $0.0001
+==================================================
+
+Post-Game Lesson: Gold Player
+
+KEY LESSONS:
+The most critical pattern was the disconnect between economy management and board strength. While the player was trying to save gold, the board fell behind, missing opportunities to stabilize and contest strong comps. This highlights the need to balance saving with actively improving your board.
+
+GOOD CALLS:
+- "You're at Lvl 5 with 27 gold. Save to 50g for max interest next round." - This was good advice at the time if the goal was pure economy.
+- "Consider rerolling for Anima Reroll, it's a strong comp this patch and you have Jinx." - Identifying a strong comp and a unit for it is excellent proactive play.
+- "You have a Rod, consider building a Jeweled Gauntlet or Rabadon's Deathcap for a future AP carry." - Itemization advice is always valuable, especially when considering future board states.
+
+AREAS TO IMPROVE:
+The player needs to work on recognizing when saving gold comes at too high a cost. At 27 gold and Level 5, aggressively rerolling to find key units and stabilize the board would have been more beneficial than strictly adhering to the 50g threshold. Learn to spend gold to win rounds when necessary.
+
+THINGS TO REMEMBER:
+- Interest caps at 50g, but this is not a rigid rule. Sometimes spending to improve your board is more important than maximizing interest.
+- Jinx is a key unit for Anima Reroll comps. When you hit a strong carry unit, scouting for synergistic units and rerolling to find them becomes a priority.
+- Itemizing for a strong AP carry is a good strategy, but ensure you have the units and level to support that carry effectively.
