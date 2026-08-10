@@ -36,18 +36,22 @@ except ImportError:  # running this file directly from inside tftcoach/
 # " 3 - 2 ", "Stage 3-2"), or None when it could not read anything at all.
 StageReader = Callable[[], Optional[str]]
 
-EVENT_KINDS = ("new_round", "augment", "carousel", "manual", "periodic")
+EVENT_KINDS = ("new_round", "augment", "carousel", "armory", "manual",
+               "periodic")
 
-# --- Convention-based round classification -----------------------------------
-# CONVENTION, NOT TRUTH. In TFT as of Set 17 / patch 17.8 augments are offered
-# on 2-1, 3-2 and 4-2, and the shared carousel is round x-4 from stage 2 on.
-# Set 18 "Enchanted Wilds" (Aug 26 2026, Unreal engine) can change both.
-# This classification ONLY relabels an event that would have fired as
-# "new_round" anyway — if the convention is wrong we lose a label, never an
-# event. Override these at runtime rather than editing code.
+# --- Round classification ----------------------------------------------------
+# Set 17 round structure, read from Riot's own map data
+# (Maps/Shipping/Map22/Sets/TFTSet17 -> StageRoundData), not assumed:
+#   augments  2-1, 3-2, 4-2
+#   carousels 1-1, 2-4, 3-4, 4-4  — and NOWHERE after 4-4.
+# From 5-4 on, the x-4 slot is a personal Item Armory, not a shared carousel:
+# nothing to scout, no priority order, and only ~15 s of planning instead of 30.
+# Treating those as carousels sent the coach scouting a board that isn't there.
+# Set 18 (Aug 26 2026, Unreal) can change all of this — reverify then.
 AUGMENT_ROUNDS = {(2, 1), (3, 2), (4, 2)}
-CAROUSEL_ROUND = 4
-CAROUSEL_MIN_STAGE = 2
+CAROUSEL_ROUNDS = {(1, 1), (2, 4), (3, 4), (4, 4)}
+ARMORY_ROUND = 4          # x-4 from ARMORY_MIN_STAGE on
+ARMORY_MIN_STAGE = 5
 
 # Safety net: if every detector is broken (uncalibrated, OCR down, HUD moved),
 # still give the user advice this often so the tool is never silent.
@@ -131,8 +135,10 @@ def classify_round(stage: Optional[str]) -> str:
     st, rd = t
     if (st, rd) in AUGMENT_ROUNDS:
         return "augment"
-    if rd == CAROUSEL_ROUND and st >= CAROUSEL_MIN_STAGE:
+    if (st, rd) in CAROUSEL_ROUNDS:
         return "carousel"
+    if rd == ARMORY_ROUND and st >= ARMORY_MIN_STAGE:
+        return "armory"
     return "new_round"
 
 

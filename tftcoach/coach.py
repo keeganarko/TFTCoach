@@ -69,7 +69,7 @@ MAX_META_CHARS = 24000
 # Loaded once per game session, not per tick, so a generous budget here costs
 # one cached prefix rather than 40 repeated sends.
 MAX_LESSON_CHARS = 14000
-MAX_REFERENCE_CHARS = 30000
+MAX_REFERENCE_CHARS = 60000
 MAX_STATS_CHARS = 14000
 MAX_PROFILE_CHARS = 12000
 # Below this many logged games, personal lessons are priors, not rules.
