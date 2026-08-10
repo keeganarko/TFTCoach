@@ -24,6 +24,12 @@ except ImportError:  # allow direct execution
 
 COMPS_URL = "https://api-hc.metatft.com/tft-comps-api/comps_data?queue=1100"
 PATCH_URL = "https://api-hc.metatft.com/tft-stat-api/patch"
+UNITS_URL = "https://api-hc.metatft.com/tft-stat-api/units"
+ITEMS_URL = "https://api-hc.metatft.com/tft-stat-api/items"
+AUGMENTS_URL = "https://api-hc.metatft.com/tft-stat-api/augments_tiers"
+
+# A unit/item needs this many games before its average means anything.
+MIN_STAT_GAMES = 20000
 UA = "Mozilla/5.0 (TFTCoach personal coaching tool)"
 
 # A comp needs this many recorded games before we trust its average placement.
@@ -198,6 +204,164 @@ def render_markdown(patch: Dict[str, Any], data: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _avg_placement(places: List[int]) -> Tuple[Optional[float], int]:
+    """MetaTFT gives a placement histogram [#1sts, #2nds, ... #8ths]."""
+    total = sum(places or [])
+    if not total:
+        return None, 0
+    return sum((i + 1) * c for i, c in enumerate(places)) / float(total), total
+
+
+def _playable_units() -> Dict[str, int]:
+    """apiName -> cost, for real playable champions only.
+
+    The stats feed also contains PVE monsters, enemy clones and summoned
+    followers (TFT17_PVE_ElderDragon, TFT17_Enemy_Aatrox, tft17_bardfollower)
+    whose averages are meaningless — a 1.34 avg on a boss is not a hot pick.
+    """
+    try:
+        from . import entities as ent_mod
+    except ImportError:
+        import entities as ent_mod  # type: ignore
+    data = ent_mod.load_entities() or {}
+    out: Dict[str, int] = {}
+    for champ in (data.get("champions") or []):
+        if not isinstance(champ, dict):
+            continue
+        api = champ.get("apiName") or champ.get("api_name")
+        cost = champ.get("cost")
+        if api and isinstance(cost, int) and 1 <= cost <= 5:
+            out[api.lower()] = cost
+    return out
+
+
+def fetch_unit_stats() -> List[Dict[str, Any]]:
+    raw = _get(UNITS_URL, timeout=25) or {}
+    playable = _playable_units()
+    rows: List[Dict[str, Any]] = []
+    for entry in (raw.get("results") or []):
+        api = str(entry.get("unit", ""))
+        cost = playable.get(api.lower())
+        if cost is None:            # PVE / summon / enemy clone -> drop
+            continue
+        avg, games = _avg_placement(entry.get("places") or [])
+        if avg is None or games < MIN_STAT_GAMES:
+            continue
+        rows.append({"name": clean_name(api), "cost": cost,
+                     "avg": round(avg, 3), "games": games})
+    rows.sort(key=lambda r: r["avg"])
+    return rows
+
+
+def fetch_item_stats() -> List[Dict[str, Any]]:
+    raw = _get(ITEMS_URL, timeout=25) or {}
+    rows: List[Dict[str, Any]] = []
+    for entry in (raw.get("results") or []):
+        avg, games = _avg_placement(entry.get("places") or [])
+        if avg is None or games < MIN_STAT_GAMES:
+            continue
+        rows.append({"name": clean_name(str(entry.get("itemName", ""))),
+                     "avg": round(avg, 3), "games": games})
+    rows.sort(key=lambda r: r["avg"])
+    return rows
+
+
+def fetch_augment_tiers() -> Dict[str, List[str]]:
+    """Curated S/A/B/C/D tiers. Riot bans DISPLAYING augment win rates in tools
+    shown during gameplay; a curated tier list is the safer shape, and this is
+    a private personal tool either way."""
+    raw = _get(AUGMENTS_URL, timeout=25) or {}
+    try:
+        tiers = raw["content"]["content"]["tierList"]
+    except (KeyError, TypeError):
+        return {}
+    out: Dict[str, List[str]] = {}
+    for tier in tiers:
+        label = str(tier.get("label") or "?")
+        names = [clean_name(str(c.get("id", "")))
+                 for c in (tier.get("content") or []) if isinstance(c, dict)]
+        out[label] = [n for n in names if n]
+    return out
+
+
+def render_stats_markdown(patch: Dict[str, Any], units: List[Dict[str, Any]],
+                          items: List[Dict[str, Any]],
+                          augments: Dict[str, List[str]]) -> str:
+    today = datetime.date.today().isoformat()
+    lines = [
+        "---",
+        "type: meta-stats",
+        'patch: "{0}"'.format(patch.get("patch") or "unknown"),
+        "fetched: {0}".format(today),
+        "source: MetaTFT api-hc.metatft.com (ranked)",
+        "generated_by: tftcoach.meta_feed",
+        "---",
+        "",
+        "# Unit, item and augment performance — patch {0}".format(
+            patch.get("patch") or "?"),
+        "",
+        "Average placement, lower is better; 4.5 is break-even in an 8-player lobby.",
+        "PVE/summon entries are filtered out. Minimum {0:,} games per row."
+        .format(MIN_STAT_GAMES),
+        "",
+    ]
+
+    if units:
+        lines += ["## Units by average placement", ""]
+        by_cost: Dict[int, List[Dict[str, Any]]] = {}
+        for row in units:
+            by_cost.setdefault(row["cost"], []).append(row)
+        for cost in sorted(by_cost):
+            entries = by_cost[cost]
+            lines.append("**{0}-cost:** ".format(cost) + ", ".join(
+                "{0} {1}".format(r["name"], r["avg"]) for r in entries))
+            lines.append("")
+        lines.append("")
+
+    if items:
+        lines += ["## Items by average placement (top 40)", ""]
+        for row in items[:40]:
+            lines.append("- {0} — {1} ({2:,} games)".format(
+                row["name"], row["avg"], row["games"]))
+        lines.append("")
+        worst = [r for r in items if r["games"] > MIN_STAT_GAMES * 3][-8:]
+        if worst:
+            lines += ["**Worst performers (avoid unless the comp demands it):** "
+                      + ", ".join("{0} {1}".format(r["name"], r["avg"])
+                                  for r in worst), ""]
+
+    for label in ("S", "A"):
+        names = augments.get(label) or []
+        if names:
+            lines += ["## {0}-tier augments".format(label), "",
+                      ", ".join(sorted(names)), ""]
+    if augments.get("D"):
+        lines += ["**D-tier (avoid):** " + ", ".join(sorted(augments["D"])), ""]
+
+    return "\n".join(lines)
+
+
+def refresh_stats(verbose: bool = True) -> Tuple[bool, str]:
+    """Write vault/Meta/Unit Item Augment Stats.md."""
+    patch = fetch_patch()
+    units = fetch_unit_stats()
+    items = fetch_item_stats()
+    augments = fetch_augment_tiers()
+    if not units and not items and not augments:
+        return False, "no stat endpoints reachable — skipped stats refresh"
+    md = render_stats_markdown(patch, units, items, augments)
+    out_dir = os.path.join(config.VAULT_DIR, "Meta")
+    os.makedirs(out_dir, exist_ok=True)
+    path = os.path.join(out_dir, "Unit Item Augment Stats.md")
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(md)
+    msg = ("Wrote {0} units, {1} items, {2} augment tiers to {3}"
+           .format(len(units), len(items), len(augments), path))
+    if verbose:
+        print(msg)
+    return True, msg
+
+
 def refresh(verbose: bool = True) -> Tuple[bool, str]:
     """Fetch and write vault/Meta/Current Patch.md. Returns (ok, message)."""
     patch = fetch_patch()
@@ -247,6 +411,8 @@ def is_available() -> Tuple[bool, str]:
 if __name__ == "__main__":
     ok, message = refresh()
     print(("OK: " if ok else "FAILED: ") + message)
+    ok2, message2 = refresh_stats()
+    print(("OK: " if ok2 else "SKIPPED: ") + message2)
     age = snapshot_age_days()
     if age is not None:
         print("Snapshot age: {0} day(s)".format(age))
