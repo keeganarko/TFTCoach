@@ -376,7 +376,7 @@ class TFTOverlay:
             if not API_KEY:
                 self._set_text(
                     "❌ No Gemini API key!\n\n"
-                    "$env:GEMINI_API_KEY = \"AIzaSyDj37tIYB0grvc5JQ0VYLLtzZuQIlWlprA\"\n\n"
+                    "$env:GEMINI_API_KEY = \"your_key_here\"\n\n"
                     "Then restart the script."
                 )
                 return
