@@ -641,9 +641,24 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                              "instead of grabbing one")
     parser.add_argument("--fresh", action="store_true",
                         help="ignore the saved rects instead of seeding from them")
+    parser.add_argument("--auto", action="store_true",
+                        help="let Claude propose the regions from a TFT frame "
+                             "instead of drawing them by hand (still verify!)")
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     only = [k.strip() for k in args.only.split(",") if k.strip()]
+    if args.auto:
+        from . import autocal
+        image_path = args.image
+        if not image_path:
+            # No file given: grab one, after a countdown so TFT can be fronted.
+            _countdown(args.delay, "\nBring TFT to the FRONT now (a planning "
+                                   "phase is the useful moment)")
+            from . import capture as capture_mod
+            frame = capture_mod.capture_screen(args.monitor)
+            image_path = capture_mod.save_frame(frame, "autocal")
+            print("Captured {0}".format(image_path))
+        return autocal.run(image_path, keys=only or None)
     if args.verify:
         return verify(monitor=args.monitor, image_path=args.image)
     return calibrate(monitor=args.monitor, delay=args.delay, only=only,

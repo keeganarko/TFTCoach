@@ -4,7 +4,7 @@ set: 17
 patch: "17.8"
 fetched: 2026-08-10
 source: MetaTFT api-hc.metatft.com (ranked, queue 1100)
-sample_size: 24515654
+sample_size: 24547563
 comps_ranked: 69
 generated_by: tftcoach.meta_feed
 ---
@@ -12,7 +12,7 @@ generated_by: tftcoach.meta_feed
 # Current Meta — Set 17, patch 17.8
 
 Auto-generated 2026-08-10. Do not hand-edit — rerun `python3 -m tftcoach.meta_feed`.
-Ranked by average placement across 24515654 ranked games; comps with fewer than 300 recorded games are excluded.
+Ranked by average placement across 24547563 ranked games; comps with fewer than 300 recorded games are excluded.
 
 ## S tier
 
