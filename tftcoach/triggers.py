@@ -417,6 +417,11 @@ class TriggerEngine:
         self._inbox: "queue.Queue" = queue.Queue()   # external (manual) requests
         self._thread: Optional[threading.Thread] = None
         self._last_fire: Optional[float] = None
+        # The safety net counts from engine start, not from epoch — otherwise a
+        # 'periodic' fires on tick 1 with stage still unknown and then eats the
+        # rate-limit budget the real first new_round needs. Callers that want
+        # advice immediately on start should call trigger_manual() once.
+        self._started_at = self._clock()
         self._on_event: Optional[OnEvent] = None
         self.fired = 0
         self.suppressed = 0
@@ -486,6 +491,8 @@ class TriggerEngine:
         triggers both wake it instantly and it never busy-waits."""
         cb = on_event or self._on_event
         self._stop.clear()
+        with self._lock:
+            self._started_at = self._clock()   # safety net counts from here
         while not self._stop.is_set():
             try:
                 item = self._inbox.get(timeout=self.poll_interval)
@@ -529,14 +536,13 @@ class TriggerEngine:
         return ev
 
     def _periodic_due(self) -> Optional[Event]:
-        gap = self.seconds_since_fire()
-        if gap is not None and gap < self.periodic_sec:
+        with self._lock:
+            base = self._last_fire if self._last_fire is not None else self._started_at
+        gap = self._clock() - base
+        if gap < self.periodic_sec:
             return None
-        if gap is None and self.watcher.reads < 1:
-            return None     # nothing has happened yet at all
         return Event(kind="periodic", stage=self.watcher.current,
-                     reason="safety net (%.0fs without advice)"
-                            % (gap if gap is not None else 0.0))
+                     reason="safety net (%.0fs without advice)" % gap)
 
     def _dispatch(self, ev: Event, cb: Optional[OnEvent]) -> None:
         self.note_call(ev.ts or self._clock())
@@ -592,7 +598,9 @@ def _selftest() -> None:
         eng.tick(got.append)
         now[0] += config.POLL_INTERVAL_SEC
     print("  delivered: %s" % [str(e) for e in got])
-    print("  suppressed by rate limit: %d" % eng.suppressed)
+    print("  suppressed by rate limit: %d  (this synthetic sequence changes"
+          " round every ~6s; real rounds are 30s+ apart, so the limiter only"
+          " bites on flicker)" % eng.suppressed)
 
     # Manual bypasses the limit even one second after a fire.
     now[0] += 1.0
