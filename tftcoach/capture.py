@@ -23,6 +23,19 @@ Backend priority: mss -> PIL.ImageGrab -> macOS `screencapture`.
     for OCR). So on macOS the PIL/screencapture backends grab the full frame and
     crop locally; on Windows the native bbox grab is used directly.
 
+BACKENDS DISAGREE ABOUT RESOLUTION ON RETINA — measured on this Mac 2026-08-10
+(mss 10.2.0, Pillow 11.3.0, 1728x1117-point display):
+    mss.grab(monitors[1]) -> 1728x1117 px  (logical, 1x)   ~53 ms
+    PIL.ImageGrab.grab()  -> 3456x2234 px  (physical, 2x)  ~192 ms
+    screencapture -R      -> 2x the requested point rect
+So the capture-pixel space depends on which backend won. Two consequences:
+  1. ALWAYS reconcile saved rects against the live frame — use
+     `regions_for_current_frame()` (or config.Regions.for_resolution) rather
+     than trusting regions.json's numbers verbatim.
+  2. On macOS mss trades OCR detail for speed (half the pixels). If small digits
+     read badly, force the sharper path with TFTCOACH_CAPTURE_BACKEND=pil or
+     `set_backend("pil")`; the 2 Hz poll gets slower but stays usable.
+
 macOS permission note: capture requires Screen Recording permission for whatever
 runs Python (Terminal / iTerm / VS Code) in System Settings > Privacy & Security
 > Screen Recording. WITHOUT it macOS does not raise — it silently returns a
@@ -115,7 +128,11 @@ def _mss_session() -> Any:
         mss = _mss_module()
         if mss is None:
             raise CaptureError("mss not installed -- " + MSS_HINT)
-        sct = mss.mss()
+        # mss >= 10 renamed the factory to MSS and deprecates mss.mss()
+        factory = getattr(mss, "MSS", None) or getattr(mss, "mss", None)
+        if factory is None:
+            raise CaptureError("mss installed but exposes no factory (broken build)")
+        sct = factory()
         _tls.mss = sct
     return sct
 

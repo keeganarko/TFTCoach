@@ -344,13 +344,18 @@ def crop(frame: Any, rect: Sequence[int]) -> Optional[Any]:
 
 # --- raw tesseract calls ----------------------------------------------------
 
-def _ocr_data(binary: Any, config: str) -> Tuple[str, float]:
-    """(text, confidence 0-1). Confidence is tesseract's own per-word conf from
+def _ocr_words(binary: Any, config: str) -> Tuple[List[str], float]:
+    """(words, confidence 0-1). Confidence is tesseract's own per-word conf from
     image_to_data, averaged over words that produced characters — an honest
-    signal, unlike a bare image_to_string which tells us nothing."""
+    signal, unlike a bare image_to_string which tells us nothing.
+
+    Words are kept SEPARATE rather than pre-joined: tesseract's word boundaries
+    are the only reliable split for a shop bar or trait list, and joining first
+    then re-splitting on whitespace throws that information away.
+    """
     ok, _reason = is_available()
     if not ok or binary is None:
-        return ("", 0.0)
+        return ([], 0.0)
     try:
         pytesseract = _pytesseract()
         Image = _pil_image()
@@ -361,7 +366,7 @@ def _ocr_data(binary: Any, config: str) -> Tuple[str, float]:
         except TypeError:      # older pytesseract without timeout support
             data = pytesseract.image_to_data(pil, **kwargs)
     except Exception:
-        return ("", 0.0)
+        return ([], 0.0)
 
     words: List[str] = []
     confs: List[float] = []
@@ -381,29 +386,72 @@ def _ocr_data(binary: Any, config: str) -> Tuple[str, float]:
             words.append(word)
             confs.append(c)
     except Exception:
-        return ("", 0.0)
+        return ([], 0.0)
     if not words:
-        return ("", 0.0)
+        return ([], 0.0)
     conf = max(0.0, min(1.0, sum(confs) / (100.0 * len(confs))))
-    return (" ".join(words), conf)
+    return (words, conf)
 
 
-def _both_polarities(img: Any, kind: str, config: str) -> Tuple[str, float]:
-    """Run the read on both polarities, keep the more confident one."""
-    best_text, best_conf = "", 0.0
+def _variants(img: Any, kind: str, configs: Sequence[str]
+              ) -> List[Tuple[List[str], float]]:
+    """Every (polarity x config) read of one crop.
+
+    Both polarities are always tried: TFT HUD text is light-on-dark, but
+    tooltips, the carousel banner and some overlays invert that, and which one
+    wins is not knowable up front. Multiple psm modes are tried because psm 7
+    ("one line") silently returns nothing on some single-digit crops while
+    psm 8 ("one word") reads them fine.
+    """
+    out: List[Tuple[List[str], float]] = []
     for invert in (True, False):
         binary = preprocess(img, kind, invert=invert)
-        text, conf = _ocr_data(binary, config)
-        if text and conf > best_conf:
-            best_text, best_conf = text, conf
-    return (best_text, best_conf)
+        if binary is None:
+            continue
+        for config in configs:
+            words, conf = _ocr_words(binary, config)
+            if words:
+                out.append((words, conf))
+    return out
 
 
-# psm 7 = single text line, psm 6 = uniform block, psm 11 = sparse text.
+def _consensus(candidates: List[Tuple[Any, float]]) -> Tuple[Optional[Any], float]:
+    """Pick the best-confidence candidate and DISCOUNT it when another variant
+    read something different.
+
+    This is the guard against confidently-wrong digits: a clean glyph reads the
+    same under every polarity/psm, while a misread ("52" -> "92" one way, "520"
+    the other) produces rivals. The discount scales with how credible the rival
+    was, so a strong read barely dented by a junk rival survives, and a coin-flip
+    lands under state.MIN_CONFIDENCE and is reported as unknown.
+    """
+    if not candidates:
+        return (None, 0.0)
+    ranked = sorted(candidates, key=lambda c: -c[1])
+    value, conf = ranked[0]
+    if conf <= 0:
+        return (None, 0.0)
+    rival = next((c for c in ranked if c[0] != value), None)
+    if rival is not None:
+        factor = 1.0 - 0.5 * (rival[1] / conf)
+        conf = conf * max(0.3, min(1.0, factor))
+    return (value, max(0.0, min(1.0, conf)))
+
+
+# psm 7 = single text line, psm 8 = single word, psm 6 = uniform block,
+# psm 11 = sparse text.
 # NOTE: pytesseract splits `config` on whitespace, so a whitelist can never
 # contain a space. That is why free text is filtered in Python instead.
-_CFG_DIGITS = "--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789"
-_CFG_STAGE = "--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789-"
+_CFG_DIGITS = ["--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789",
+               "--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789"]
+# The stage separator is a thin glyph tesseract drops or mangles, so one config
+# whitelists it and one runs unrestricted to catch whatever it became.
+_CFG_STAGE = ["--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789-",
+              "--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789-",
+              "--oem 3 --psm 7"]
+
+# Everything OCR turns a stage separator into.
+_SEP_CHARS = r"\s~_\-–—=:;.,·•|/\\'\"^"
 
 
 def read_number(img: Any, value_range: Optional[Tuple[int, int]] = None
@@ -411,65 +459,83 @@ def read_number(img: Any, value_range: Optional[Tuple[int, int]] = None
     """Digits only. Returns (None, 0.0) on anything implausible — the caller
     passes the sanity window (gold 0-999, level 1-11, hp 0-100)."""
     try:
-        text, conf = _both_polarities(img, "number", _CFG_DIGITS)
-        digits = re.sub(r"\D", "", text)
-        if not digits:
+        candidates: List[Tuple[Any, float]] = []
+        for words, conf in _variants(img, "number", _CFG_DIGITS):
+            digits = re.sub(r"\D", "", "".join(words))
+            if not digits or len(digits) > 4:   # runaway read, not a HUD number
+                continue
+            candidates.append((int(digits), conf))
+        value, conf = _consensus(candidates)
+        if value is None:
             return (None, 0.0)
-        if len(digits) > 4:                     # runaway read, not a HUD number
-            return (None, 0.0)
-        value = int(digits)
         if value_range is not None:
             lo, hi = value_range
             if value < lo or value > hi:
                 return (None, 0.0)
-        return (value, conf)
+        return (int(value), conf)
     except Exception:
         return (None, 0.0)
 
 
 def read_text(img: Any, psm: int = 7) -> Tuple[str, float]:
     """General text. psm 7 for one line, 11 for sparse/multi-item regions."""
+    words, conf = read_words(img, psm=psm)
+    return (" ".join(words), conf) if words else ("", 0.0)
+
+
+def read_words(img: Any, psm: int = 7) -> Tuple[List[str], float]:
+    """Like read_text but keeps tesseract's word split, which is what the shop
+    and trait readers need in order to tell two names apart."""
     try:
-        config = "--oem 3 --psm %d" % int(psm)
-        text, conf = _both_polarities(img, "text", config)
-        if not text:
-            return ("", 0.0)
-        cleaned = _TEXT_KEEP.sub(" ", text)
-        cleaned = re.sub(r"\s+", " ", cleaned).strip()
-        if not cleaned:
-            return ("", 0.0)
-        return (cleaned, conf)
+        variants = _variants(img, "text", ["--oem 3 --psm %d" % int(psm)])
+        best_words: List[str] = []
+        best_conf = 0.0
+        for words, conf in variants:
+            cleaned = [w for w in (_clean_word(w) for w in words) if w]
+            if cleaned and conf > best_conf:
+                best_words, best_conf = cleaned, conf
+        return (best_words, best_conf)
     except Exception:
-        return ("", 0.0)
+        return ([], 0.0)
+
+
+def _clean_word(word: str) -> str:
+    return _TEXT_KEEP.sub("", word or "").strip()
+
+
+def _parse_stage(raw: str) -> Optional[str]:
+    """"3-2" out of whatever tesseract produced, or None."""
+    if not raw:
+        return None
+    norm = re.sub("[" + _SEP_CHARS + "]+", "-", raw).strip("-")
+    match = re.search(r"(\d)-+(\d)", norm)
+    if match:
+        stage, rnd = int(match.group(1)), int(match.group(2))
+    else:
+        digits = re.sub(r"\D", "", raw)
+        if len(digits) != 2:      # only unambiguous when exactly two digits
+            return None
+        stage, rnd = int(digits[0]), int(digits[1])
+    if not (1 <= stage <= 7 and 1 <= rnd <= 7):
+        return None
+    return "%d-%d" % (stage, rnd)
 
 
 def read_stage(img: Any) -> Tuple[Optional[str], float]:
     """Parse the "N-M" stage indicator, tolerating the usual OCR noise.
 
     Accepts "3-2", "3 2", "3~2" and a bare "32" when both digits are in range,
-    since the separator is a thin glyph that tesseract drops constantly.
-    Validates stage 1-7 and round 1-7; anything else is a misread.
+    since the separator is a thin glyph tesseract drops constantly. Validates
+    stage 1-7 and round 1-7; anything else is a misread, not a stage.
     """
     try:
-        text, conf = _both_polarities(img, "text", _CFG_STAGE)
-        if not text:
-            # separator sometimes survives as a non-whitelisted glyph; retry free
-            text, conf = read_text(img, psm=7)
-        if not text:
-            return (None, 0.0)
-        norm = re.sub(r"[^0-9]+", "-", text).strip("-")
-        m = re.search(r"([1-9])-([1-9])", norm)
-        if m:
-            stage, rnd = int(m.group(1)), int(m.group(2))
-        else:
-            digits = re.sub(r"\D", "", text)
-            if len(digits) == 2:
-                stage, rnd = int(digits[0]), int(digits[1])
-            else:
-                return (None, 0.0)
-        if not (1 <= stage <= 7 and 1 <= rnd <= 7):
-            return (None, 0.0)
-        return ("%d-%d" % (stage, rnd), conf)
+        candidates: List[Tuple[Any, float]] = []
+        for words, conf in _variants(img, "text", _CFG_STAGE):
+            parsed = _parse_stage(" ".join(words))
+            if parsed:
+                candidates.append((parsed, conf))
+        value, conf = _consensus(candidates)
+        return (value, conf) if value else (None, 0.0)
     except Exception:
         return (None, 0.0)
 
@@ -557,6 +623,43 @@ def match_shop_line(entities: Any, raw: str) -> List[Tuple[str, float]]:
     return out
 
 
+def _match_words(entities: Any, words: List[str], kind: str
+                 ) -> List[Tuple[str, float]]:
+    """Greedy left-to-right validation over OCR words.
+
+    Bigrams are tried before unigrams because plenty of champions and traits are
+    two words; the pair only wins if it matches at least as well as the single
+    word, so a false pairing cannot swallow a good solo match.
+    """
+    pairs: List[Tuple[str, float]] = []
+    i = 0
+    while i < len(words):
+        uni_name, uni_score = match_name(entities, words[i], kind)
+        bi_name, bi_score = (None, 0.0)
+        if i + 1 < len(words):
+            bi_name, bi_score = match_name(
+                entities, words[i] + " " + words[i + 1], kind)
+        if bi_name and bi_score >= uni_score:
+            pairs.append((bi_name, bi_score))
+            i += 2
+        elif uni_name:
+            pairs.append((uni_name, uni_score))
+            i += 1
+        else:
+            i += 1
+    return pairs
+
+
+def _plausible_token(word: str) -> bool:
+    """Filter for the unvalidated fallback: keep things that look like a name,
+    drop the letter-soup a noisy crop produces."""
+    word = (word or "").strip()
+    if len(word) < 3 or len(word) > 20:
+        return False
+    letters = sum(1 for c in word if c.isalpha())
+    return letters >= 3 and letters >= 0.7 * len(word)
+
+
 def _dedupe(pairs: List[Tuple[str, float]], limit: int) -> List[Tuple[str, float]]:
     seen = set()
     out: List[Tuple[str, float]] = []
@@ -579,53 +682,46 @@ def read_shop(img: Any, entities: Any = None) -> Tuple[List[str], float]:
     state.MIN_CONFIDENCE so it shows up in the timeline but is never trusted."""
     best: List[Tuple[str, float]] = []
     best_conf = 0.0
-    best_raw = ""
+    best_words: List[str] = []
+    fallback_conf = 0.0
+    # psm 6 reads the bar as a block, 11 as scattered text, 7 as one line —
+    # which one wins depends on card spacing at this resolution.
     for psm in (6, 11, 7):
-        raw, conf = read_text(img, psm=psm)
-        if not raw:
+        words, conf = read_words(img, psm=psm)
+        if not words:
             continue
-        matched = match_shop_line(entities, raw)
+        if conf > fallback_conf:
+            best_words, fallback_conf = words, conf
+        matched = match_shop_line(entities, " ".join(words))
         if not matched:
-            per_token: List[Tuple[str, float]] = []
-            for token in re.split(r"[\s]{2,}|\n", raw):
-                name, score = match_name(entities, token.strip(), "champion")
-                if name:
-                    per_token.append((name, score))
-            matched = per_token
-        score_sum = sum(s for _n, s in matched)
-        best_sum = sum(s for _n, s in best)
-        if score_sum > best_sum or (not best and conf > best_conf):
-            best, best_conf, best_raw = matched, conf, raw
+            matched = _match_words(entities, words, "champion")
+        if sum(s for _n, s in matched) > sum(s for _n, s in best):
+            best, best_conf = matched, conf
     if best:
         names = _dedupe(best, MAX_SHOP_SLOTS)
         avg_match = sum(s for _n, s in names) / float(len(names))
         return ([n for n, _s in names], max(0.0, min(1.0, best_conf * avg_match)))
-    if best_raw:
-        # Unvalidated: keep the raw tokens visible, but below MIN_CONFIDENCE.
-        tokens = [t for t in re.split(r"\s{2,}|\n", best_raw) if len(t.strip()) > 2]
-        if tokens:
-            return (tokens[:MAX_SHOP_SLOTS], min(UNVALIDATED_NAME_CAP, best_conf))
+    tokens = [w for w in best_words if _plausible_token(w)]
+    if tokens:
+        # Unvalidated: visible in the timeline for debugging, but capped below
+        # state.MIN_CONFIDENCE so no downstream prompt ever treats it as fact.
+        return (tokens[:MAX_SHOP_SLOTS], min(UNVALIDATED_NAME_CAP, fallback_conf))
     return ([], 0.0)
 
 
 def read_traits(img: Any, entities: Any = None) -> Tuple[List[str], float]:
     """Active trait names from the synergy panel, validated the same way."""
-    raw, conf = read_text(img, psm=11)
-    if not raw:
+    words, conf = read_words(img, psm=11)
+    if not words:
+        words, conf = read_words(img, psm=6)
+    if not words:
         return ([], 0.0)
-    pairs: List[Tuple[str, float]] = []
-    for token in re.split(r"\s{2,}|\n|\s(?=[A-Z])", raw):
-        token = token.strip()
-        if len(token) < 3:
-            continue
-        name, score = match_name(entities, token, "trait")
-        if name:
-            pairs.append((name, score))
+    pairs = _match_words(entities, words, "trait")
     if pairs:
         names = _dedupe(pairs, MAX_TRAITS)
         avg_match = sum(s for _n, s in names) / float(len(names))
         return ([n for n, _s in names], max(0.0, min(1.0, conf * avg_match)))
-    tokens = [t.strip() for t in re.split(r"\s{2,}|\n", raw) if len(t.strip()) > 2]
+    tokens = [w for w in words if _plausible_token(w)]
     if tokens:
         return (tokens[:MAX_TRAITS], min(UNVALIDATED_NAME_CAP, conf))
     return ([], 0.0)

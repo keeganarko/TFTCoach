@@ -973,7 +973,57 @@ class CoachApp:
         self.root.quit()
 
 
+def headless_check() -> int:
+    """`python3 run_coach.py --check` — verify the stack without opening the UI.
+
+    Use this after installing deps, after calibrating, and on the Windows box.
+    """
+    from tftcoach import capture, coach, entities, meta_feed, ocr
+
+    print("TFT Coach — Option B setup check\n")
+    rows = []
+    for label, mod in (("capture", capture), ("ocr", ocr), ("entities", entities),
+                       ("claude", coach), ("meta", meta_feed)):
+        try:
+            ok, why = mod.is_available()
+        except Exception as exc:  # a broken module must not hide the others
+            ok, why = False, "raised {0}".format(exc.__class__.__name__)
+        rows.append((ok, label, why))
+
+    regions = config.Regions.load()
+    if not regions.calibrated:
+        rows.append((False, "regions", "not calibrated — run python3 -m tftcoach.calibrate"))
+    else:
+        missing = regions.missing()
+        rows.append((not missing, "regions",
+                     "{0}x{1}, {2} regions{3}".format(
+                         regions.resolution[0], regions.resolution[1],
+                         len(regions.rects),
+                         "" if not missing else "; missing: " + ", ".join(missing))))
+
+    for ok, label, why in rows:
+        print(" {0}  {1:<9} {2}".format("OK  " if ok else "MISS", label, why))
+
+    blocking = [l for ok, l, _ in rows if not ok and l in ("capture", "claude")]
+    degraded = [l for ok, l, _ in rows if not ok and l not in ("capture", "claude")]
+    print("")
+    if blocking:
+        print("BLOCKED: {0} must work before the coach can run.".format(
+            ", ".join(blocking)))
+        return 1
+    if degraded:
+        print("Runs in FULL-FRAME FALLBACK mode (whole screenshot to Claude, "
+              "same as tft_coach_v2.py). Fix {0} for exact local extraction."
+              .format(", ".join(degraded)))
+    else:
+        print("All green — structured extraction active.")
+    return 0
+
+
 def main() -> int:
+    if "--check" in sys.argv:
+        config.ensure_dirs()
+        return headless_check()
     try:
         import tkinter as tk
     except ImportError:
