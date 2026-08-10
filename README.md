@@ -42,10 +42,28 @@ color-coded suggestions, and writes post-game lesson files (`notes/`).
   Unreal Engine launch Aug 26, Riot API surface, CommunityDragon data, headless Claude
   Code on subscription auth.
 - **[docs/OBSIDIAN_BRAIN.md](docs/OBSIDIAN_BRAIN.md)** — the self-improving lessons brain.
-- **[vault/](vault/)** — the Obsidian vault itself (open this folder as a vault):
-  `TFT-Brain.md` index with active principles, per-game notes (May 2026 sessions
-  migrated), lessons with a candidate → confirmed → principle lifecycle, machine-written
-  meta snapshots.
+- **[vault/](vault/)** — the Obsidian vault, and the coach's entire brain. Open this
+  folder as a vault. All of it is loaded into the prompt once per game:
+
+  | Folder | Contents | Source |
+  |---|---|---|
+  | `TFT-Brain.md` | active principles, player profile, standing instructions | hand-written |
+  | `Reference/` | trait breakpoints, item recipes, shop odds, econ math, pro strategy | auto + curated |
+  | `Lessons/` | personal lessons with their boundary conditions | written after games |
+  | `Meta/Current Patch.md` | 69 comps: avg placement, boards, carries, items, level plans | MetaTFT, auto |
+  | `Meta/Unit Item Augment Stats.md` | per-unit and per-item avg placement, augment tiers | MetaTFT, auto |
+  | `Games/` | one note per match, including an audit of the coach's own advice | written after games |
+
+  **Source precedence** is enforced in the prompt: current-patch statistics beat
+  reference strategy, which beats personal lessons, which beat the model's own
+  (possibly stale) TFT knowledge. Personal lessons are labelled low-confidence until
+  20 games are logged — three games are priors, not laws.
+
+  Refresh the data layer any time:
+  ```
+  python3 -m tftcoach.meta_feed     # comps + unit/item/augment stats
+  python3 -m tftcoach.reference     # trait breakpoints + item recipes (after a set change)
+  ```
 
 ## Setup (v1)
 
