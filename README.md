@@ -2,7 +2,27 @@
 
 Personal project exploring AI coaching for Teamfight Tactics.
 
-## v1 (current script)
+## v2 runtime (current) — `tft_coach_v2.py`
+
+Claude-powered coaching overlay for macOS + Windows. Auto-captures your screen every 45 s
+(⚡ TIP NOW for instant advice), sends it to Claude via your subscription (headless Claude
+Code, one persistent session per game so the coach remembers the whole game), grounded in
+the `vault/` brain and `vault/Meta/Current Patch.md`. 📋 END GAME writes a structured game
+note and lesson updates into the vault.
+
+```
+# Requires the `claude` CLI, logged in. Windows also: pip install pillow
+python3 tft_coach_v2.py
+```
+
+macOS one-time setup: System Settings → Privacy & Security → Screen Recording → enable
+your terminal app. Before playing: paste the current tier list into
+`vault/Meta/Current Patch.md` (see the marked section).
+
+Manual alternative (any machine with Claude Code): open `claude` in this repo and use
+`/pregame`, `/coach <screenshot>`, `/postgame <result>`.
+
+## v1 (legacy script)
 
 `tft_coach_gemini.py` — Windows Tkinter overlay: screenshots the game every 30–60 s (F9 for
 instant tips), sends them to Gemini 2.5 Flash-Lite with meta knowledge in the prompt, shows
