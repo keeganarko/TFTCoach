@@ -743,6 +743,74 @@ def _low_confidence_list(state: GameState) -> List[str]:
     return out
 
 
+# Thresholds come from this player's own 200-game sample (vault/Profile). They
+# are checked in code rather than left for the model to notice, because a leak
+# buried in a 90k-char prompt is a leak that fires inconsistently.
+LEAK_RULES = (
+    ("gold_hoard",
+     lambda st, gd, lv, hp: gd is not None and hp is not None
+     and gd >= 30 and hp < 40,
+     "OVER-SAVING: {gold}g banked at {hp} HP. My games ending with 30+ gold "
+     "average 5.42 vs 3.83 at 5-9 gold. This is my single worst pattern — "
+     "spend down this round unless you can name a concrete reason not to."),
+    ("no_level",
+     lambda st, gd, lv, hp: st is not None and lv is not None
+     and st >= 5 and lv < 9,
+     "UNDER-LEVELLED: level {level} at stage {stage}. My final-level-10 games "
+     "average 2.52; level 8 averages 6.50. Buying XP is usually the highest-"
+     "value gold sink I have."),
+    ("survive_five",
+     lambda st, gd, lv, hp: st is not None and hp is not None
+     and st >= 5 and hp <= 30,
+     "ELIMINATION RISK at stage {stage}, {hp} HP. Dying in stage 5 averages "
+     "6.14 for me; surviving into stage 6 averages 2.47 — about 3.7 placements "
+     "for one more round of survival. Value this fight accordingly."),
+    # thin_board needs the board list, so it is checked separately below.
+)
+
+
+def _leak_alerts(state: GameState) -> List[str]:
+    """Fire this player's measured leaks against the current state."""
+    def num(field: str) -> Optional[int]:
+        f: Field = getattr(state, field, None)
+        if f is None or not f.known:
+            return None
+        try:
+            return int(f.value)
+        except (TypeError, ValueError):
+            return None
+
+    gold, level, hp = num("gold"), num("level"), num("hp")
+    stage_field: Field = state.stage
+    stage_no = None
+    if stage_field.known and isinstance(stage_field.value, str):
+        head = str(stage_field.value).split("-")[0]
+        if head.isdigit():
+            stage_no = int(head)
+
+    out: List[str] = []
+    for name, test, template in LEAK_RULES:
+        if not template:
+            continue
+        try:
+            if test(stage_no, gold, level, hp):
+                out.append(template.format(gold=gold, hp=hp, level=level,
+                                           stage=stage_field.value))
+        except Exception:
+            continue
+
+    # Board size vs level: fielding fewer units than your level allows is the
+    # cheapest fixable version of the "thin board" leak (11+ averages 3.03).
+    board: Field = state.board
+    if board.known and isinstance(board.value, list) and level:
+        if len(board.value) < level:
+            out.append("THIN BOARD: {0} units on the field at level {1}. My "
+                       "boards of 11+ average 3.03 vs 6.42 at 8 or fewer — "
+                       "field every slot I have paid for."
+                       .format(len(board.value), level))
+    return out
+
+
 def build_coach_prompt(state: GameState,
                        timeline: Optional[Timeline] = None,
                        first_call: bool = False,
@@ -809,6 +877,14 @@ def build_coach_prompt(state: GameState,
 
     if note:
         parts.append("MY NOTE: " + note.strip())
+
+    alerts = _leak_alerts(state)
+    if alerts:
+        parts.append("== MY MEASURED LEAKS FIRING RIGHT NOW (computed from this "
+                     "tick's state against my own 200-game history — at least "
+                     "one bullet must address the top item unless something is "
+                     "more urgent) ==\n"
+                     + "\n".join("- " + a for a in alerts))
 
     parts.append(OUTPUT_CONTRACT)
     return "\n\n".join(p for p in parts if p)
