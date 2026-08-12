@@ -701,6 +701,8 @@ class CoachApp:
         self.btn.pack(side="left", padx=6)
         tk.Button(bar, text="TIP NOW", font=("Courier", 9),
                   command=self.tip_now).pack(side="left", padx=3)
+        tk.Button(bar, text="SCOUT", font=("Courier", 9),
+                  command=self.scout).pack(side="left", padx=4)
         tk.Button(bar, text="END GAME", font=("Courier", 9),
                   command=self.end_game).pack(side="left", padx=3)
         tk.Button(bar, text="CALIBRATE", font=("Courier", 9),
@@ -820,6 +822,8 @@ class CoachApp:
             body = ("MODE: OCR — exact gold/level/stage/HP read locally, vision only "
                     "for board/bench crops.\n\nPress START when your game begins.\n"
                     "TIP NOW = manual tip (strong model, ignores rate limit).\n"
+                    "SCOUT = press while viewing an ENEMY board — feeds "
+                    "contest tracking + threat read.\n"
                     "END GAME = write the vault game note.")
         if not cl_ok:
             body = ("Claude CLI missing — advice calls will fail. Install Claude Code "
@@ -916,6 +920,65 @@ class CoachApp:
         # Manual: strongest model, no rate limit. Safe to call from any thread.
         threading.Thread(target=self.run_tick, args=("manual",),
                          kwargs={"manual": True}, daemon=True).start()
+
+    def scout(self) -> None:
+        """Press while an OPPONENT's board is on screen.
+
+        One vision call reads their board; the result feeds pool/contest
+        tracking and comes back as a threat brief (who contests my line, what
+        damage type, where their carry sits). This is the only path that ever
+        sees an enemy board, so it is what turns 'scout more' from a slogan
+        into data.
+        """
+        def work() -> None:
+            if self.busy:
+                return
+            self.busy = True
+            self.ui(lambda: self.set_status("scouting..."))
+            try:
+                frame = self.capture.full_frame(downscale=True)
+                prompt = (
+                    "SCOUT REPORT. Read the screenshot at %s — it shows an "
+                    "OPPONENT's TFT board (not mine). Return STRICT JSON only:\n"
+                    '{"player": "<name if visible or null>", "units": '
+                    '[{"name": "...", "star": 1|2|3, "items": ["..."]}], '
+                    '"front_row_units": ["..."], "carry_guess": "<most-itemized '
+                    'unit>", "damage_type": "AD"|"AP"|"mixed"}\n'
+                    "Only units actually visible; never invent." % frame)
+                raw = self.coach.call(prompt, model=self.coach.auto_model)
+                try:
+                    from tftcoach.coach import extract_json_object
+                    data = extract_json_object(raw) or {}
+                except Exception:
+                    data = {}
+                units = data.get("units") or []
+                if units and getattr(self, "_pool", None) is not None:
+                    try:
+                        self._pool.observe_scout(units)
+                    except Exception:
+                        pass
+                if data:
+                    brief = ("SCOUTED %s: %d units, carry=%s, damage=%s, "
+                             "front=%s" % (data.get("player") or "opponent",
+                                           len(units),
+                                           data.get("carry_guess") or "?",
+                                           data.get("damage_type") or "?",
+                                           ", ".join(data.get("front_row_units")
+                                                     or [])[:60]))
+                    self.timeline.append_advice(brief, "scout")
+                    self.ui(lambda b=brief: self.set_text(
+                        b + "\n\nPool tracking updated. Positioning advice on "
+                            "the next tick will account for this board."))
+                else:
+                    self.ui(lambda r=raw: self.set_text(
+                        "Scout read failed — is an enemy board on screen?\n\n"
+                        + str(r)[:300]))
+            except Exception as exc:
+                self.ui(lambda e=exc: self.set_text("Scout error: %s" % e))
+            finally:
+                self.busy = False
+                self.ui(self.set_status)
+        threading.Thread(target=work, daemon=True).start()
 
     def show_calibrate(self) -> None:
         cmd = "%s -m tftcoach.calibrate" % (os.path.basename(sys.executable) or "python3")
