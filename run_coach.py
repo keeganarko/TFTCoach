@@ -854,7 +854,11 @@ class CoachApp:
             if crops_wanted and needs_vision:
                 state = self.coach.vision_fill(state, self.capture.crops(frame, crops_wanted))
             self.timeline.append(state)
-            return (state, self.coach.state_prompt(state, self.timeline, first))
+            prompt = self.coach.state_prompt(state, self.timeline, first)
+            pool_block = self._pool_observe(state)
+            if pool_block:
+                prompt += "\n\n" + pool_block
+            return (state, prompt)
         frame = self.capture.full_frame(downscale=True)
         state = GameState(raw_capture=frame)      # every field stays unknown
         self.timeline.append(state)
@@ -959,12 +963,29 @@ class CoachApp:
 
         threading.Thread(target=run, daemon=True).start()
 
+    def _pool_observe(self, state: GameState) -> str:
+        """Feed the pool tracker and return its prompt block ('' when silent).
+
+        Best-effort by design: pool intel improves advice but must never be
+        able to break a tick.
+        """
+        try:
+            if getattr(self, "_pool", None) is None:
+                from tftcoach import entities as ent_mod
+                from tftcoach.pool import PoolTracker
+                self._pool = PoolTracker(ent_mod.load_entities())
+            self._pool.observe(state)
+            return self._pool.prompt_block()
+        except Exception:
+            return ""
+
     def new_game(self) -> None:
         """Fresh timeline + fresh Claude session for the next match."""
         self.coach.reset_session()
         self.timeline = Timeline(config.GAMES_DIR)
         self.last_state = None
         self.last_call_ts = 0.0
+        self._pool = None          # pool knowledge is per-game by definition
         self.triggers.reset()
         self.ui(self.set_status)
 

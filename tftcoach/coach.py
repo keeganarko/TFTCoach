@@ -816,7 +816,8 @@ def build_coach_prompt(state: GameState,
                        first_call: bool = False,
                        entities: Any = None,
                        note: str = "",
-                       vision_crops: Optional[Dict[str, str]] = None) -> str:
+                       vision_crops: Optional[Dict[str, str]] = None,
+                       pool_block: str = "") -> str:
     """The per-tick coaching prompt.
 
     first_call carries the vault context, legal names and standing rules — once.
@@ -877,6 +878,9 @@ def build_coach_prompt(state: GameState,
 
     if note:
         parts.append("MY NOTE: " + note.strip())
+
+    if pool_block:
+        parts.append(pool_block)
 
     alerts = _leak_alerts(state)
     if alerts:
