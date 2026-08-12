@@ -94,13 +94,22 @@ def _positions(comp: Dict[str, Any]) -> List[str]:
     Getting this backwards would invert every positioning call the coach makes.
     """
     out = []
+    seen = set()
     for entry in (comp.get("units_positions") or []):
         if not isinstance(entry, dict):
             continue
         idx = entry.get("board_position")
         unit = clean_name(str(entry.get("unit_api_name", "")))
-        if unit and isinstance(idx, int) and 0 <= idx <= 27:
-            out.append("{0} r{1}c{2}".format(unit, idx // 7 + 1, idx % 7 + 1))
+        if not unit or not isinstance(idx, int) or not 0 <= idx <= 27:
+            continue
+        # The aggregation upstream sometimes lists one unit at two hexes
+        # (Samira r4c1 AND r4c7) — a single copy cannot be in two places, and
+        # contradictory hexes would poison positioning advice. First entry is
+        # the modal placement; keep it, drop the rest.
+        if unit in seen:
+            continue
+        seen.add(unit)
+        out.append("{0} r{1}c{2}".format(unit, idx // 7 + 1, idx % 7 + 1))
     return out
 
 

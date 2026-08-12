@@ -1,7 +1,7 @@
 ---
 type: meta-stats
 patch: "17.8"
-fetched: 2026-08-11
+fetched: 2026-08-12
 source: MetaTFT api-hc.metatft.com (ranked)
 generated_by: tftcoach.meta_feed
 ---
@@ -13,61 +13,61 @@ PVE/summon entries are filtered out. Minimum 20,000 games per row.
 
 ## Units by average placement
 
-**1-cost:** Aatrox 4.272, Teemo 4.283, Caitlyn 4.326, Nasus 4.364, Lissandra 4.491, Poppy 4.501, Chogath 4.505, Ezreal 4.534, Leona 4.627, Veigar 4.68, Rek Sai 4.685, Talon 4.716, Twisted Fate 4.85, Briar 5.056
+**1-cost:** Aatrox 4.274, Teemo 4.282, Caitlyn 4.329, Nasus 4.365, Lissandra 4.492, Poppy 4.501, Chogath 4.505, Ezreal 4.53, Leona 4.624, Veigar 4.677, Rek Sai 4.684, Talon 4.712, Twisted Fate 4.851, Briar 5.054
 
-**2-cost:** Gwen 4.255, Akali 4.282, Gnar 4.417, Mordekaiser 4.422, Ivern Minion 4.445, Jax 4.447, Gragas 4.466, Zoe 4.469, Pantheon 4.474, Belveth 4.489, Milio 4.578, Pyke 4.615, Jinx 5.037
+**2-cost:** Gwen 4.257, Akali 4.284, Gnar 4.414, Mordekaiser 4.42, Ivern Minion 4.445, Jax 4.448, Gragas 4.465, Zoe 4.466, Pantheon 4.475, Belveth 4.492, Milio 4.58, Pyke 4.619, Jinx 5.037
 
-**3-cost:** Rhaast 4.107, Miss Fortune 4.242, Samira 4.242, Maokai 4.267, Ornn 4.272, Viktor 4.282, Fizz 4.426, Kaisa 4.433, Urgot 4.439, Lulu 4.64, Illaoi 4.726, Diana 4.78, Aurora 5.206
+**3-cost:** Rhaast 4.108, Samira 4.243, Miss Fortune 4.244, Maokai 4.268, Ornn 4.273, Viktor 4.281, Fizz 4.425, Kaisa 4.432, Urgot 4.441, Lulu 4.643, Illaoi 4.725, Diana 4.781, Aurora 5.208
 
-**4-cost:** Morgana 3.973, Nami 4.017, Kindred 4.038, Riven 4.11, Karma 4.184, Aurelion Sol 4.225, Corki 4.267, Rammus 4.272, Tahm Kench 4.284, Galio 4.329, Xayah 4.329, Nunu 4.336, Leblanc 4.41, Master Yi 4.41
+**4-cost:** Morgana 3.973, Nami 4.017, Kindred 4.039, Riven 4.109, Karma 4.184, Aurelion Sol 4.224, Corki 4.266, Rammus 4.271, Tahm Kench 4.283, Xayah 4.326, Galio 4.33, Nunu 4.334, Leblanc 4.41, Master Yi 4.413
 
-**5-cost:** Shen 3.589, Jhin 3.636, Bard 3.706, Blitzcrank 3.779, Sona 3.847, Fiora 3.975, Vex 4.044, Graves 4.185, Zed 4.243
+**5-cost:** Shen 3.59, Jhin 3.634, Bard 3.705, Blitzcrank 3.779, Sona 3.848, Fiora 3.975, Vex 4.044, Graves 4.184, Zed 4.245
 
 
 ## Items by average placement (top 40)
 
-- Force Of Nature — 2.738 (160,970 games)
-- Anima Squad Item Tier2 Searing Shortbow — 3.485 (85,349 games)
-- Anima Squad Item Tier2 Annihilator — 3.499 (85,660 games)
-- Anima Squad Item Tier2 Radiant Field — 3.545 (87,841 games)
-- Anima Squad Item Tier2 Echoing Batblades — 3.546 (78,083 games)
-- Anima Squad Item Tier2 Lioness Lament — 3.598 (84,205 games)
-- Anima Squad Item Tier2 Iceblast Armor — 3.634 (87,727 games)
-- Anima Squad Item Tier2 Cyclonic Slicers — 3.646 (79,366 games)
-- ASTrait Emblem Item — 3.657 (595,609 games)
-- Anima Squad Item Tier2 Uwu Blaster — 3.717 (75,623 games)
-- Crownguard — 3.723 (1,946,966 games)
-- Morellonomicon — 3.778 (1,848,177 games)
-- Anima Squad Item Tier2 Battle Bunny Crossbow — 3.779 (181,278 games)
-- Night Harvester — 3.787 (2,447,383 games)
-- Adaptive Helm — 3.823 (2,875,182 games)
-- Bramble Vest — 3.844 (2,517,953 games)
-- Power Gauntlet — 3.852 (3,041,567 games)
-- Ionic Spark — 3.896 (1,407,168 games)
-- Rapid Fire Cannon — 3.906 (2,616,591 games)
-- Steraks Gage — 3.91 (2,040,661 games)
-- Statikk Shiv — 3.921 (2,969,219 games)
-- Hextech Gunblade — 3.928 (2,640,146 games)
-- Unstable Concoction — 3.935 (2,971,925 games)
-- Rabadons Deathcap — 3.942 (4,662,782 games)
-- Last Whisper — 3.943 (2,553,226 games)
-- Infinity Edge Radiant — 3.944 (36,280 games)
-- Dragons Claw — 3.944 (3,076,434 games)
-- Stargazer Emblem Item — 3.946 (1,385,329 games)
-- Trap Claw Radiant — 3.946 (20,204 games)
-- Guardian Angel — 3.951 (1,952,841 games)
-- Frozen Heart — 3.973 (4,659,237 games)
-- Thiefs Gloves — 3.982 (4,621,038 games)
-- Deathblade — 3.985 (4,798,482 games)
-- Madreds Bloodrazor — 3.985 (6,317,877 games)
-- Quicksilver — 3.986 (1,342,828 games)
-- Runaans Hurricane — 4.003 (2,506,099 games)
-- Rabadons Deathcap Radiant — 4.01 (46,187 games)
-- Archangels Staff — 4.031 (2,027,666 games)
-- Redemption — 4.032 (6,197,485 games)
-- Deathblade Radiant — 4.04 (47,914 games)
+- Force Of Nature — 2.738 (159,015 games)
+- Anima Squad Item Tier2 Searing Shortbow — 3.482 (84,352 games)
+- Anima Squad Item Tier2 Annihilator — 3.492 (84,419 games)
+- Anima Squad Item Tier2 Echoing Batblades — 3.541 (76,946 games)
+- Anima Squad Item Tier2 Radiant Field — 3.545 (86,858 games)
+- Anima Squad Item Tier2 Lioness Lament — 3.59 (83,224 games)
+- Anima Squad Item Tier2 Iceblast Armor — 3.63 (86,347 games)
+- Anima Squad Item Tier2 Cyclonic Slicers — 3.652 (78,124 games)
+- ASTrait Emblem Item — 3.659 (584,558 games)
+- Crownguard — 3.723 (1,925,405 games)
+- Anima Squad Item Tier2 Uwu Blaster — 3.724 (74,446 games)
+- Morellonomicon — 3.777 (1,823,799 games)
+- Anima Squad Item Tier2 Battle Bunny Crossbow — 3.782 (178,969 games)
+- Night Harvester — 3.788 (2,425,709 games)
+- Adaptive Helm — 3.822 (2,840,408 games)
+- Bramble Vest — 3.846 (2,493,265 games)
+- Power Gauntlet — 3.852 (2,992,881 games)
+- Ionic Spark — 3.897 (1,394,038 games)
+- Rapid Fire Cannon — 3.907 (2,584,151 games)
+- Steraks Gage — 3.911 (2,018,937 games)
+- Statikk Shiv — 3.921 (2,938,138 games)
+- Hextech Gunblade — 3.928 (2,598,114 games)
+- Unstable Concoction — 3.936 (2,946,211 games)
+- Last Whisper — 3.942 (2,529,028 games)
+- Rabadons Deathcap — 3.942 (4,634,337 games)
+- Dragons Claw — 3.944 (3,046,773 games)
+- Stargazer Emblem Item — 3.947 (1,371,902 games)
+- Infinity Edge Radiant — 3.949 (35,911 games)
+- Guardian Angel — 3.949 (1,925,277 games)
+- Frozen Heart — 3.971 (4,590,110 games)
+- Thiefs Gloves — 3.981 (4,570,924 games)
+- Madreds Bloodrazor — 3.985 (6,250,216 games)
+- Quicksilver — 3.985 (1,326,099 games)
+- Deathblade — 3.986 (4,734,530 games)
+- Runaans Hurricane — 4.003 (2,476,867 games)
+- Rabadons Deathcap Radiant — 4.011 (45,687 games)
+- Archangels Staff — 4.032 (2,011,604 games)
+- Redemption — 4.032 (6,145,002 games)
+- Deathblade Radiant — 4.035 (47,278 games)
+- Spectral Gauntlet — 4.045 (1,434,381 games)
 
-**Worst performers (avoid unless the comp demands it):** Chain Vest 4.764, Anima Squad Item Tier1 Savage Slicer 4.798, Needlessly Large Rod 4.804, Giants Belt 4.817, Anima Squad Item Tier1 Tentacle Slam 4.858, Anima Squad Item Tier1 Guiding Hex 4.862, BFSword 4.89, Anima Squad Item Tier1 Rocket Swarm 4.914
+**Worst performers (avoid unless the comp demands it):** Chain Vest 4.762, Anima Squad Item Tier1 Savage Slicer 4.792, Needlessly Large Rod 4.804, Giants Belt 4.815, Anima Squad Item Tier1 Guiding Hex 4.855, Anima Squad Item Tier1 Tentacle Slam 4.863, BFSword 4.887, Anima Squad Item Tier1 Rocket Swarm 4.91
 
 ## S-tier augments
 

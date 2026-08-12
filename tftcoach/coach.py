@@ -69,7 +69,7 @@ MAX_META_CHARS = 24000
 # Loaded once per game session, not per tick, so a generous budget here costs
 # one cached prefix rather than 40 repeated sends.
 MAX_LESSON_CHARS = 14000
-MAX_REFERENCE_CHARS = 60000
+MAX_REFERENCE_CHARS = 110000
 MAX_STATS_CHARS = 14000
 MAX_PROFILE_CHARS = 12000
 # Below this many logged games, personal lessons are priors, not rules.
@@ -363,7 +363,8 @@ def load_vault_context(vault_dir: str = config.VAULT_DIR) -> VaultContext:
     # alone cannot answer "is this shop unit actually good" or "which item do I
     # slam"; these tables can.
     stats = _load_dir(vault_dir, "Meta", MAX_STATS_CHARS,
-                      skip=("README.md", "Current Patch.md"))
+                      skip=("README.md", "Current Patch.md",
+                            "Set 18 Preview.md"))  # future-prep, not live meta
     if stats:
         parts.append("== UNIT / ITEM / AUGMENT STATS (this patch; avg placement, "
                      "lower is better, 4.5 = break-even) ==\n" + stats)

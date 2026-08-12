@@ -54,9 +54,38 @@ _AUG_PREFIX = re.compile(r"^TFT\d*_?Augment_+")
 _TRAIT_SUFFIX = re.compile(r"_\d+$")
 
 
+_TRAIT_ALIASES: Optional[Dict[str, str]] = None
+
+
+def _trait_aliases() -> Dict[str, str]:
+    """Internal trait id -> real display name, from the CDragon whitelist.
+
+    Riot's internal ids are dev placeholders ('TFT17_AssassinTrait' is the
+    trait players see as 'Rogue'). Coaching rules keyed on display names never
+    fire if we emit the internal form, so map through the whitelist.
+    """
+    global _TRAIT_ALIASES
+    if _TRAIT_ALIASES is None:
+        aliases: Dict[str, str] = {}
+        try:
+            try:
+                from . import entities as ent_mod
+            except ImportError:
+                import entities as ent_mod  # type: ignore
+            for trait in (ent_mod.load_entities() or {}).get("traits") or []:
+                if isinstance(trait, dict) and trait.get("apiName") and trait.get("name"):
+                    raw = _SET_PREFIX.sub("", str(trait["apiName"]))
+                    raw = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", raw.replace("_", " "))
+                    aliases[raw.strip().lower()] = str(trait["name"])
+        except Exception:
+            pass
+        _TRAIT_ALIASES = aliases
+    return _TRAIT_ALIASES
+
+
 def clean_name(raw: str) -> str:
     """TFT17_Jax -> Jax, TFT_Item_Bloodthirster -> Bloodthirster,
-    TFT17_Stargazer_Wolf_1 -> Stargazer Wolf."""
+    TFT17_AssassinTrait -> Rogue (via the whitelist alias table)."""
     if not raw:
         return ""
     s = raw.strip()
@@ -67,7 +96,8 @@ def clean_name(raw: str) -> str:
     s = s.replace("_", " ").strip()
     # split CamelCase into words, but keep known runs together
     s = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", s)
-    return s
+    # dev placeholder trait ids -> the names players actually see
+    return _trait_aliases().get(s.strip().lower(), s)
 
 
 def _clean_list(raw: str, limit: int = 12) -> List[str]:
@@ -370,7 +400,21 @@ def refresh(verbose: bool = True) -> Tuple[bool, str]:
         return False, ("Could not reach the MetaTFT API — keeping the existing "
                        "snapshot. Check your connection, or paste a tier list "
                        "manually into vault/Meta/Current Patch.md.")
+    # Patch-launch stats blackout (esp. a SET launch): almost nothing passes
+    # the sample floor for 24-72h. Say so explicitly — an unexplained empty
+    # meta note reads as "broken" to the coach instead of "intentionally off".
+    if len(data["comps"]) < 3:
+        data.setdefault("comps", [])
+        blackout = ("\n> **STATS BLACKOUT** — this patch is too new for "
+                    "reliable comp data (fewer than 3 comps pass the {0}-game "
+                    "floor). Coach from the launch-week doctrine and the set "
+                    "primer instead of comp stats until this refreshes.\n"
+                    .format(MIN_GAMES))
+    else:
+        blackout = ""
     md = render_markdown(patch, data)
+    if blackout:
+        md = md.replace("\n## ", blackout + "\n## ", 1)
     out_dir = os.path.join(config.VAULT_DIR, "Meta")
     os.makedirs(out_dir, exist_ok=True)
     path = os.path.join(out_dir, "Current Patch.md")

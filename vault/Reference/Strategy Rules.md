@@ -105,7 +105,7 @@ BOUNDARY: requires ≥3 frontline units. With 2 tanks, splitting means neither o
 
 **P-7 — Against heavy AoE: at least 1 empty hex between the carry and any other unit; never 3+ units inside a 2x2 block.**
 CONDITION: enemy board contains large AoE / wombo ults, or an obvious "one big cast" carry.
-BOUNDARY: contradicts P-3 and P-5-saturate. Spread costs you protection — only spread as much as the specific AoE radius demands, and only for the units that would actually be caught. Never spread the whole board "just in case."
+BOUNDARY: contradicts P-3 and P-5-saturate. Spread costs you protection — only spread as much as the specific AoE radius demands, and only for the units that would actually be caught. Never spread the whole board "just in case." **Board-wide casts cannot be dodged by spacing** (Set 17: Aurelion Sol's black hole hits everywhere) — never sacrifice clustering against those; counter with a Shroud on the caster's side, burst focus, or kill priority instead.
 
 ## Item-driven positioning (Set 17 mechanics, verbatim from CommunityDragon)
 
