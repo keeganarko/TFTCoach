@@ -1,5 +1,4 @@
 ---
-set: 17
 type: reference
 scope: patch-bound
 fetched: 2026-08-12
@@ -10,6 +9,8 @@ generated_by: tftcoach.highelo
 # High-elo playbook — what Master+/Challenger do differently
 
 The main meta snapshot averages every ranked player. This is the same analysis restricted to the top of the ladder. Where the two disagree, this file describes the better decision.
+
+Caveats: win conditions and level timings are pooled by the provider, not fully rank-stratified — only avg placement is per-bracket. Item/trait deltas are correlational (hitting an emblem is partly an effect of already winning): treat them as priority hints, never roll targets.
 
 ## CHALLENGER — top 12 comps
 
@@ -187,6 +188,8 @@ The main meta snapshot averages every ranked player. This is the same analysis r
 
 ## The delta — my bracket vs the top
 
-**Common in my bracket but absent at the top** (these do not survive contact with good players — treat as traps): Anima Fiora, Anima Jinx, Bastion Ornn, Brawler Maokai, Challenger Rek Sai, Conduit Arbiter Zoe, Dark Star Primordian Kaisa, Meeple Rammus, N.O.V.A. Challenger Miss Fortune, Primordian N.O.V.A. Belveth, Psionic Mecha Master Yi, Psionic Voyager Pyke, Replicator Stargazer Miss Fortune, Shepherd Voyager Viktor
+**Played at the top but not in my bracket** (worth learning): N.O.V.A. Vex
+
+**Common in my bracket but absent at the top** (these do not survive contact with good players — treat as traps): Anima Fiora, Anima Jinx, Bastion Ornn, Brawler Maokai, Challenger Rek Sai, Conduit Arbiter Zoe, Dark Star Primordian Kaisa, Primordian N.O.V.A. Belveth, Psionic Mecha Master Yi, Psionic Voyager Pyke, Stargazer Huntress Xayah, Vanguard Bastion Nunu, Vanguard Leona, Voyager Psionic Pyke
 
 A comp appearing only in lower brackets usually means it beats mistakes rather than beating boards. Prefer lines that hold up at the top when the choice is close.

@@ -2,14 +2,14 @@
 type: reference
 scope: set-bound
 set: 17
-fetched: 2026-08-11
+fetched: 2026-08-12
 source: CommunityDragon
 generated_by: tftcoach.reference
 ---
 
 # Set 17 trait breakpoints and item recipes
 
-Auto-generated 2026-08-11. Regenerate after a set change: `python3 -m tftcoach.reference`.
+Auto-generated 2026-08-12. Regenerate after a set change: `python3 -m tftcoach.reference`.
 
 ## Trait breakpoints
 
@@ -47,13 +47,13 @@ Adding a unit only matters if it crosses one of these numbers.
 - **Sniper**: 2/3/4
 - **Space Groove**: 1/3/5/7/10
 - **Stargazer**: 3/4/5/6
-- **Stargazer**: 3
-- **Stargazer**: 3/5/7
-- **Stargazer**: 3/5/7
-- **Stargazer**: 3
-- **Stargazer**: 3/5
-- **Stargazer**: 3/4/5/6/7/8/9/10/11
 - **Stargazer**: 3/5/7/8/9/10
+- **Stargazer (Stargazer Fountain)**: 3/5
+- **Stargazer (Stargazer Huntress)**: 3/5/7
+- **Stargazer (Stargazer Medallion)**: 3
+- **Stargazer (Stargazer Mountain)**: 3/4/5/6/7/8/9/10/11
+- **Stargazer (Stargazer Serpent)**: 3/5/7
+- **Stargazer (Stargazer Shield)**: 3
 - **Timebreaker**: 2/3/4
 - **Vanguard**: 2/4/6
 - **Voyager**: 2/3/4/5/6
@@ -117,5 +117,3 @@ Which two components combine into each completed item.
 - **Void Staff** = Recurve Bow + Tear of the Goddess
 - **Voyager Emblem** = Frying Pan + Needlessly Large Rod
 - **Warmog's Armor** = Giant's Belt + Giant's Belt
-- **tft item name Cursed Blade** = tft item name Cursed Blade + tft item name Cursed Blade
-- **tft item name Hextech Chestguard** = tft item name Hextech Chestguard + tft item name Hextech Chestguard

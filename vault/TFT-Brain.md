@@ -30,16 +30,26 @@ With only a few games logged, individual Lessons are priors, not laws.
 
 ## Measured leaks — coach against these every game
 
-1. **Dying with gold in the bank.** Games ending with 30+ gold unspent average
-   **5.42**; the 8th-place signature is 27.8 gold left at stage 5-1. Bot-4 games
-   end with 18.0 gold, top-4 with 11.3.
-   → *Trigger: HP under 40 and gold 30+ at stage 4-5 means over-saving. Spend.*
-2. **Not reaching level 9/10.** Final level 10 averages **2.52** vs level 8 at
-   6.50. Surviving stage 5 into stage 6 is worth ~3.7 placements.
-   → *Trigger: at stage 5 with gold banked, buy levels, not interest.*
-3. **Incomplete items and thin boards.** Three units holding 3 items averages
-   **4.16** vs 5.98 with two. Board of 11 averages 2.91 vs 8 at 6.56.
-   → *Trigger: prefer completing a third item and adding a body over hoarding.*
+Numbers live in [[Player Profile]] (single source of truth — quote it, do not
+copy figures here; copies have drifted once already).
+
+1. **Dying with 30+ gold in the bank** — the 30+ bucket averages ~5.4 and is
+   the 8th-place signature. The leak is specifically 30+ banked while bleeding:
+   the 0-4 bucket is *also* bad (spending down to zero without a plan), and
+   5-20 left is the healthy zone.
+   → *Trigger: HP under 40 and gold 30+ at stage 4-5 → spend down toward
+   5-20 left. Boundary: do not break interest breakpoints before stage 4 while
+   healthy (E-3), and never spend to zero without a named purchase.*
+2. **Not converting level 9 into level 10.** Final level 10 averages ~2.5 vs
+   ~6.5 at level 8. Most of my 5th-8th places die in stage 5 (105 of 200
+   games); the levers that move stage-5 survival in my data are completed
+   items and board size — the elimination-stage table itself restates
+   placement, so cite the levers, not the table.
+   → *Trigger: at stage 5+ with gold banked, buy levels per E-9, not interest.*
+3. **Incomplete items and thin boards.** 4+ units holding 3 items ≈ 3.4 avg vs
+   ≈ 6.0 with two; boards of 11+ ≈ 3.0 vs ≈ 6.4 at 8 or fewer.
+   → *Trigger: prefer completing a third/fourth item and fielding every paid
+   slot over hoarding components or gold.*
 
 **Do not chase 3-stars.** Games with 2+ three-stars average 4.65 — identical to
 games with none. Completed items and board size predict placement; 3-stars do not.

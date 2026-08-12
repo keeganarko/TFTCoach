@@ -21,8 +21,11 @@ against the strongest boards (carry placement vs. assassins/backline access) is 
 possible if you've seen them.
 
 ## When it applies / doesn't
-Always applies; the cost is zero. Depth varies: full scout at 2-1/3-2/4-1 decision points,
-quick threat-check otherwise.
+Applies at the real carousels — 2-4, 3-4 and 4-4 (the last one) — and at eliminations.
+From 5-4 onward the x-4 slot is a 15-second item armory, not a shared carousel: pick your
+armory item first, then a targeted scout of the next opponent only if time remains.
+Depth varies: full sweep at the carousels and 3-2/4-1 decision points, quick threat-check
+otherwise.
 
 ## Evidence
 - [[2026-05-17 Game]] — scouting advised, likely not acted on; flagged as the game's

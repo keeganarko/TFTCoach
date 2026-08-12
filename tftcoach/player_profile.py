@@ -251,18 +251,15 @@ def render(player: str, season: str, rows: List[Dict[str, Any]]) -> str:
         lines.append("")
 
     if avg is not None:
-        best = [c for c in carries[:3]]
-        worst = [c for c in carries[-3:] if c[2] and c[2] > avg]
-        lines += ["## Read this as coaching triggers", ""]
-        if best:
-            lines.append("- Lean toward: " + ", ".join(
-                "{0} ({1})".format(c[0], c[2]) for c in best))
-        if worst:
-            lines.append("- Avoid itemising: " + ", ".join(
-                "{0} ({1})".format(c[0], c[2]) for c in worst))
-        lines.append("- Baseline to beat: {0}. Anything above it is a losing "
-                     "pattern for me specifically.".format(avg))
-        lines.append("")
+        # Triggers come ONLY from the aggregate tables above — those replicate
+        # across independent passes. Carry attribution does not (see the
+        # HEURISTIC banner), so carry names are investigation hints, not leans.
+        lines += ["## Read this as coaching triggers", "",
+                  "- Baseline to beat: {0}. The levers that replicate: spend "
+                  "down 30+ banked gold when bleeding, convert 9 into 10, "
+                  "complete third/fourth items, field every slot.".format(avg),
+                  "- Carry rows above are heuristic — investigate, do not "
+                  "cite.", ""]
     return "\n".join(lines)
 
 

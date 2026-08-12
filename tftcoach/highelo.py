@@ -126,6 +126,11 @@ def render(by_rank: Dict[str, List[Dict[str, Any]]],
         "The main meta snapshot averages every ranked player. This is the same "
         "analysis restricted to the top of the ladder. Where the two disagree, "
         "this file describes the better decision.", "",
+        "Caveats: win conditions and level timings are pooled by the provider, "
+        "not fully rank-stratified — only avg placement is per-bracket. Item/"
+        "trait deltas are correlational (hitting an emblem is partly an effect "
+        "of already winning): treat them as priority hints, never roll targets.",
+        "",
     ]
 
     # The delta is the actual lesson: which comps survive contact with good players.
@@ -164,8 +169,12 @@ def render(by_rank: Dict[str, List[Dict[str, Any]]],
             lines.append("")
         lines.append("")
 
-    top = by_rank.get("CHALLENGER") or []
-    top_names = {_comp_label(c) for c in top
+    # "The top" = anything viable in ANY high bracket. Computing the trap list
+    # against Challenger alone flagged comps (e.g. Astronaut Rammus) that were
+    # simultaneously listed as Master+ top-12 in the same file — a coach that
+    # can justify both forcing and avoiding the same comp is worse than silent.
+    top_names = {_comp_label(c)
+                 for comps in by_rank.values() for c in comps
                  if ((c.get("stats") or {}).get("nb_games") or 0) >= MIN_GAMES}
     only_low = sorted(mine_names - top_names)[:14]
     only_top = sorted(top_names - mine_names)[:14]

@@ -138,11 +138,17 @@ def fetch_comps() -> Optional[Dict[str, Any]]:
                 items.append({"item": clean_name(it["itemNames"]),
                               "avg": it.get("avg"),
                               "pick_rate": it.get("pcnt")})
+        units = _clean_list(c.get("units_string", ""))
+        # The analytics 'stars' field routinely names units that are not on the
+        # comp's own board (cluster bleed) — a "carry" you cannot field is
+        # corrupt advice, so keep only carries that appear among the units.
+        carries = [clean_name(u) for u in (c.get("stars") or [])]
+        carries = [x for x in carries if x in units][:3]
         comps.append({
             "name": " / ".join(_clean_list(c.get("name_string", ""), 3)) or "Unnamed",
-            "units": _clean_list(c.get("units_string", "")),
+            "units": units,
             "traits": _clean_list(c.get("traits_string", "")),
-            "carries": [clean_name(u) for u in (c.get("stars") or [])[:3]],
+            "carries": carries,
             "avg_placement": round(float(avg), 2),
             "games": int(count),
             "level_plan": c.get("levelling") or "",
@@ -305,12 +311,28 @@ def fetch_augment_tiers() -> Dict[str, List[str]]:
         tiers = raw["content"]["content"]["tierList"]
     except (KeyError, TypeError):
         return {}
+    # The curated list spans several sets' augment ids; anything not in the
+    # current set's whitelist is noise (old-set augments, dev ids).
+    current: set = set()
+    try:
+        try:
+            from . import entities as ent_mod
+        except ImportError:
+            import entities as ent_mod  # type: ignore
+        current = {str(a).lower()
+                   for a in (ent_mod.load_entities() or {}).get("augments") or []}
+    except Exception:
+        pass
+
     out: Dict[str, List[str]] = {}
     for tier in tiers:
         label = str(tier.get("label") or "?")
         names = [clean_name(str(c.get("id", "")))
                  for c in (tier.get("content") or []) if isinstance(c, dict)]
-        out[label] = [n for n in names if n]
+        names = [n for n in names if n]
+        if current:
+            names = [n for n in names if n.lower() in current]
+        out[label] = names
     return out
 
 
@@ -354,7 +376,15 @@ def render_stats_markdown(patch: Dict[str, Any], units: List[Dict[str, Any]],
             lines.append("- {0} — {1} ({2:,} games)".format(
                 row["name"], row["avg"], row["games"]))
         lines.append("")
-        worst = [r for r in items if r["games"] > MIN_STAT_GAMES * 3][-8:]
+        # Raw components at game end correlate with losing because holding
+        # them IS the item-completion leak — listing them as "avoid" would
+        # teach exactly the wrong lesson. Completed items only here.
+        components = {"bfsword", "bf sword", "recurve bow", "needlessly large rod",
+                      "tear of the goddess", "chain vest", "negatron cloak",
+                      "giants belt", "sparring gloves", "spatula", "frying pan"}
+        worst = [r for r in items
+                 if r["games"] > MIN_STAT_GAMES * 3
+                 and r["name"].lower() not in components][-8:]
         if worst:
             lines += ["**Worst performers (avoid unless the comp demands it):** "
                       + ", ".join("{0} {1}".format(r["name"], r["avg"])

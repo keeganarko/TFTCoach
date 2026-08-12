@@ -21,60 +21,60 @@ PVE/summon entries are filtered out. Minimum 20,000 games per row.
 
 **4-cost:** Morgana 3.973, Nami 4.017, Kindred 4.039, Riven 4.109, Karma 4.184, Aurelion Sol 4.224, Corki 4.266, Rammus 4.271, Tahm Kench 4.283, Xayah 4.326, Galio 4.33, Nunu 4.334, Leblanc 4.41, Master Yi 4.413
 
-**5-cost:** Shen 3.59, Jhin 3.634, Bard 3.705, Blitzcrank 3.779, Sona 3.848, Fiora 3.975, Vex 4.044, Graves 4.184, Zed 4.245
+**5-cost:** Shen 3.59, Jhin 3.634, Bard 3.705, Blitzcrank 3.779, Sona 3.848, Fiora 3.975, Vex 4.044, Graves 4.184, Zed 4.246
 
 
 ## Items by average placement (top 40)
 
-- Force Of Nature — 2.738 (159,015 games)
-- Anima Squad Item Tier2 Searing Shortbow — 3.482 (84,352 games)
-- Anima Squad Item Tier2 Annihilator — 3.492 (84,419 games)
-- Anima Squad Item Tier2 Echoing Batblades — 3.541 (76,946 games)
-- Anima Squad Item Tier2 Radiant Field — 3.545 (86,858 games)
-- Anima Squad Item Tier2 Lioness Lament — 3.59 (83,224 games)
-- Anima Squad Item Tier2 Iceblast Armor — 3.63 (86,347 games)
-- Anima Squad Item Tier2 Cyclonic Slicers — 3.652 (78,124 games)
-- ASTrait Emblem Item — 3.659 (584,558 games)
-- Crownguard — 3.723 (1,925,405 games)
-- Anima Squad Item Tier2 Uwu Blaster — 3.724 (74,446 games)
-- Morellonomicon — 3.777 (1,823,799 games)
-- Anima Squad Item Tier2 Battle Bunny Crossbow — 3.782 (178,969 games)
-- Night Harvester — 3.788 (2,425,709 games)
-- Adaptive Helm — 3.822 (2,840,408 games)
-- Bramble Vest — 3.846 (2,493,265 games)
-- Power Gauntlet — 3.852 (2,992,881 games)
-- Ionic Spark — 3.897 (1,394,038 games)
-- Rapid Fire Cannon — 3.907 (2,584,151 games)
-- Steraks Gage — 3.911 (2,018,937 games)
-- Statikk Shiv — 3.921 (2,938,138 games)
-- Hextech Gunblade — 3.928 (2,598,114 games)
-- Unstable Concoction — 3.936 (2,946,211 games)
-- Last Whisper — 3.942 (2,529,028 games)
-- Rabadons Deathcap — 3.942 (4,634,337 games)
-- Dragons Claw — 3.944 (3,046,773 games)
-- Stargazer Emblem Item — 3.947 (1,371,902 games)
-- Infinity Edge Radiant — 3.949 (35,911 games)
-- Guardian Angel — 3.949 (1,925,277 games)
-- Frozen Heart — 3.971 (4,590,110 games)
-- Thiefs Gloves — 3.981 (4,570,924 games)
-- Madreds Bloodrazor — 3.985 (6,250,216 games)
-- Quicksilver — 3.985 (1,326,099 games)
-- Deathblade — 3.986 (4,734,530 games)
-- Runaans Hurricane — 4.003 (2,476,867 games)
-- Rabadons Deathcap Radiant — 4.011 (45,687 games)
-- Archangels Staff — 4.032 (2,011,604 games)
-- Redemption — 4.032 (6,145,002 games)
-- Deathblade Radiant — 4.035 (47,278 games)
-- Spectral Gauntlet — 4.045 (1,434,381 games)
+- Force Of Nature — 2.738 (159,063 games)
+- Anima Squad Item Tier2 Searing Shortbow — 3.482 (84,380 games)
+- Anima Squad Item Tier2 Annihilator — 3.492 (84,463 games)
+- Anima Squad Item Tier2 Echoing Batblades — 3.541 (76,983 games)
+- Anima Squad Item Tier2 Radiant Field — 3.545 (86,888 games)
+- Anima Squad Item Tier2 Lioness Lament — 3.59 (83,256 games)
+- Anima Squad Item Tier2 Iceblast Armor — 3.629 (86,370 games)
+- Anima Squad Item Tier2 Cyclonic Slicers — 3.652 (78,154 games)
+- ASTrait Emblem Item — 3.659 (584,840 games)
+- Crownguard — 3.723 (1,926,345 games)
+- Anima Squad Item Tier2 Uwu Blaster — 3.724 (74,473 games)
+- Morellonomicon — 3.777 (1,824,723 games)
+- Anima Squad Item Tier2 Battle Bunny Crossbow — 3.782 (179,033 games)
+- Night Harvester — 3.788 (2,426,910 games)
+- Adaptive Helm — 3.822 (2,841,706 games)
+- Bramble Vest — 3.846 (2,494,586 games)
+- Power Gauntlet — 3.852 (2,994,264 games)
+- Ionic Spark — 3.897 (1,394,801 games)
+- Rapid Fire Cannon — 3.906 (2,585,352 games)
+- Steraks Gage — 3.911 (2,019,953 games)
+- Statikk Shiv — 3.921 (2,939,677 games)
+- Hextech Gunblade — 3.928 (2,599,335 games)
+- Unstable Concoction — 3.936 (2,947,784 games)
+- Last Whisper — 3.942 (2,530,353 games)
+- Rabadons Deathcap — 3.942 (4,636,720 games)
+- Dragons Claw — 3.944 (3,048,350 games)
+- Stargazer Emblem Item — 3.947 (1,372,570 games)
+- Infinity Edge Radiant — 3.949 (35,922 games)
+- Guardian Angel — 3.949 (1,926,172 games)
+- Frozen Heart — 3.971 (4,592,173 games)
+- Thiefs Gloves — 3.981 (4,573,254 games)
+- Madreds Bloodrazor — 3.985 (6,253,207 games)
+- Quicksilver — 3.985 (1,326,707 games)
+- Deathblade — 3.986 (4,736,931 games)
+- Runaans Hurricane — 4.003 (2,478,204 games)
+- Rabadons Deathcap Radiant — 4.011 (45,702 games)
+- Archangels Staff — 4.031 (2,012,673 games)
+- Redemption — 4.032 (6,148,032 games)
+- Deathblade Radiant — 4.036 (47,298 games)
+- Spectral Gauntlet — 4.044 (1,435,128 games)
 
-**Worst performers (avoid unless the comp demands it):** Chain Vest 4.762, Anima Squad Item Tier1 Savage Slicer 4.792, Needlessly Large Rod 4.804, Giants Belt 4.815, Anima Squad Item Tier1 Guiding Hex 4.855, Anima Squad Item Tier1 Tentacle Slam 4.863, BFSword 4.887, Anima Squad Item Tier1 Rocket Swarm 4.91
+**Worst performers (avoid unless the comp demands it):** Crown Of Demacia 4.463, Artifact Rapid Firecannon 4.467, Anima Squad Emblem Item 4.609, Favored Emblem Item 4.694, Anima Squad Item Tier1 Savage Slicer 4.792, Anima Squad Item Tier1 Guiding Hex 4.855, Anima Squad Item Tier1 Tentacle Slam 4.863, Anima Squad Item Tier1 Rocket Swarm 4.91
 
 ## S-tier augments
 
-Aatrox Carry, Anima Squad Commander, Branching Out, Branching Out Plus, Calculated Loss, Commander Rolling For Days, Cosmic Restart, Epic Rolldown, Forged In Strength, Forward Thinking, Head Start, Hefty Rolls, Hold The Line, Indecision1, Indecision2, Ixtal Expeditionist, Just Hit, Long Time Crafting, Magic Roll Minus, Max Build, Restart Mission, Rumble Carry, Second Wind1, Spirit Link1, Spreading Roots, Spreading Roots Plus, Stars Are Born, Tacticians Kitchen, The Barons Lair, The World Runes, Three Threes, Trait Tree, Trait Tree Plus, Treasure Hunt, Two Tanky, Varus God Augment Boon Of Stars, Weightlifting
+Branching Out, Calculated Loss, Cosmic Restart, Epic Rolldown, Forged In Strength, Forward Thinking, Hold The Line, Restart Mission, Spreading Roots, Treasure Hunt, Two Tanky
 
 ## A-tier augments
 
-Advanced Loan, Advanced Loan Plus, Ahri God Augment, Awakened Soul, Backline Blueprint, Band Of Thieves1, Band Of Thieves2Plus, Band Of Thieves2Plus Plus, Big Friend, Big Grab Bag, Birthday Reunion, Bodyguard Training, Booster Pack, Booster Pack Plus, Booster Pack Plus Plus, Boxing Lessons, Calltochaos, Charge Transfer1, Charge Transfer2, Cluttered Mind, Commander Partial Ascension, Component Quest Rod, Component Quest Sword, Construct ACompanion, Coronation, Crash Test Dummies, Crownguard Spirit, Customer Is Always Right, Dark Star White Hole, Deadlier Caps, Distancing, Distancing2, Diversify1, Dummify, Early Learning, Ekko God Augment, Electrocharge1, Electrocharge2, Exclusive Customization, Expedition, Firesale Plus, Foodfight Tactics, Forge Rod, Forge Sword, Frontline Foundation, Gacha Addict, Golden Gamble, Golden Gamble Plus, Golden Gamble Plus Plus, Golemify, Group Hug1, Group Hug2, Heroic Grab Bag, Heroic Grab Bag Plus, Heroic Grab Bag Plus Plus, Home Cooking, Invested Plus Plus, Kayle God Augment, Last Second Save, Late Game Scaling, Lategame Specialist, Learning From Experience2, Living Forge, Magic Roll, May The Fours Be With You, Misfits, Missed Connections, Noxus Bringer Of Ruin, Pandoras Bench, Pandoras Items, Patience Is AVirtue, Placebo Plus, Portable Forge, Salvage Bin, Savings Account, Second Wind2, Shimmerscale Essence, Small Grab Bag, Sweet Treats, Sword Overflow, Teamup Augment Jarvan Shyvana, The Darkin Forge, The Golden Dragon, Thorn Plated Armor, Thresh God Augment, Thrift Shop, Tiniest Titan Plus, Tragical Blade, Twin Guardians, Two Much Value, Ultra Rapid Fire, Urfs Gambit, Void Evolve And Overcome, Water Axiom, Worth The Wait Gold, Worth The Wait Prismatic, Yasuo God Augment More Hexes, Yasuo God Augment Painted Power
+Advanced Loan, Backline Blueprint, Big Grab Bag, Birthday Reunion, Bodyguard Training, Booster Pack, Boxing Lessons, Cluttered Mind, Crash Test Dummies, Deadlier Caps, Dummify, Exclusive Customization, Expedition, Frontline Foundation, Golden Gamble, Heroic Grab Bag, Late Game Scaling, Living Forge, May The Fours Be With You, Misfits, Missed Connections, Portable Forge, Salvage Bin, Savings Account, Shimmerscale Essence, Small Grab Bag, Sweet Treats, Sword Overflow, The Golden Dragon, Twin Guardians, Two Much Value
 
-**D-tier (avoid):** Draven Spoils Of War3, Survivor, Timebreaker Timestream
+**D-tier (avoid):** Survivor

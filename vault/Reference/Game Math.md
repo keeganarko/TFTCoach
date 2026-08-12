@@ -1,13 +1,14 @@
 ---
 type: reference
 scope: set-bound
-fetched: 2026-08-11
-source: researched from Riot game data and high-level TFT sources
+set: 17
+fetched: 2026-08-12
+source: Riot map data + web-verified tables; audited 2026-08-11
 ---
 
 # TFT game math — Set 17
 
-Shop odds, pool sizes, round structure, damage and roll math. These are mechanics, not opinions — they settle roll/level questions outright.
+Shop odds, pools, round structure, damage and roll math. Mechanics, not opinions — they settle roll/level questions outright. Set-bound: regenerate from official 18.1 patch notes at rollover; until then any Set 18 math is unverified.
 
 # Shop Odds — Set 17
 
@@ -31,33 +32,11 @@ Coaching consequences:
 - 3-cost odds PEAK at level 7 (40%), not level 8. A 3-cost reroll comp rolls at 7, never levels to 8 to "hit better".
 - 4-cost odds triple from level 7 to level 8 (10% -> 30%). This is the single largest odds jump in the game and is why "level 8 then roll" is the default 4-cost line.
 - 5-cost odds are 3% at 8 and 15% at 9 — a 5x jump. Do not roll for a 5-cost at level 8.
-- Level 9 is where 4-cost (33%) and 5-cost (15%) are both live; level 10 favours 5-costs over 4-costs on a per-slot basis only marginally (40 vs 25).
+- At level 10, 4-costs (40%) still out-roll 5-costs (25%) per slot; level 10 is where 5-costs first become realistically rollable, not where they dominate.
 
 Source: Riot game data, map22.bin.json, `Maps/Shipping/Map22/Sets/TFTSet17 -> DropRateTables.Shop -> {1ee21754}.mDropRatesByLevel`. Set 14 references the same table object, i.e. Riot has not changed base odds between those sets.
 
-# Champion Pool — Set 17
-
-| Cost | Champions in tier | Copies of EACH | Total copies in tier |
-|-----:|------------------:|---------------:|---------------------:|
-| 1 | 14 | 29 | 406 |
-| 2 | 13 | 22 | 286 |
-| 3 | 13 | 18 | 234 |
-| 4 | 14 | 10 | 140 |
-| 5 |  8 |  9 |  72 |
-
-**1-cost (29 copies each):** Aatrox, Briar, Caitlyn, Cho'Gath, Ezreal, Leona, Lissandra, Nasus, Poppy, Rek'Sai, Talon, Teemo, Twisted Fate, Veigar
-
-**2-cost (22 each):** Akali, Bel'Veth, Gnar, Gragas, Gwen, Meepsie (IvernMinion), Jax, Jinx, Milio, Mordekaiser, Pantheon, Pyke, Zoe
-
-**3-cost (18 each):** Aurora, Diana, Fizz, Illaoi, Kai'Sa, Lulu, Maokai, Miss Fortune, Ornn, Rhaast, Samira, Urgot, Viktor
-
-**4-cost (10 each):** Aurelion Sol, Corki, The Mighty Mech (Galio), Karma, Kindred, LeBlanc, Master Yi, Morgana, Nami, Nunu & Willump, Rammus, Riven, Tahm Kench, Xayah
-
-**5-cost (9 each):** Bard, Blitzcrank, Fiora, Graves, Jhin, Shen, Sona, Vex
-
-Use: a 3-star 4-cost needs 9 of 10 copies — effectively impossible while contested. A 3-star 3-cost needs 9 of 18. Scouting two other boards holding your 4-cost carry means 20-40% of its pool is gone before you roll.
-
-Source: map22.bin.json, ScriptData.TierBagListName = 'Set17_TierBags' -> Set17_TierBag1..5.
+Copies per champion in the shared pool: 1-cost 30, 2-cost 25, 3-cost 18, 4-cost 10, 5-cost 9. (Two independent sources agree; the '29/22' figures in the older half of Game Math.md are wrong.) Consequences that survive the correction: 3-star 4-cost needs 9 of 10 copies — effectively dead while contested; 3-star 3-cost needs 9 of 18; a 1-cost reroll is nearly uncontestable-by-depletion (30 copies) — 1-cost contests are about shop odds, not pool exhaustion. CONDITION: denominators for all rolldown math. BOUNDARY: unique-champion counts per tier are still unreconciled across sources (roster file says 14/13/13/14/8 and is missing Zed at 5-cost; tft.ninja says 15/13/13/13/10) — regenerate the roster from CommunityDragon before recomputing per-shop hit rates, since tier totals shift the denominator.
 
 # Round Structure — Set 17
 
@@ -80,15 +59,14 @@ Extracted from `Maps/Shipping/Map22/Sets/TFTSet17 -> StageRoundData -> {11d7f30e
 | 5-7 … 11-7 | Dragon (`TFT17_Round_Dragon`) |
 | all other x-1/2/3/5/6 | Standard PvP combat |
 
-## Correction to the codebase
-`tftcoach/triggers.py:42-43` currently asserts "the shared carousel is round x-4 from stage 2 on". That is **wrong for Set 17 from 5-4 onward**. Carousels exist only at 1-1, 2-4, 3-4 and 4-4. From 5-4 the x-4 slot is a 15-second item armory where you pick an item from a personal selection — there is no shared board to scout and no priority order.
-
-The augment rounds in that same comment (2-1 / 3-2 / 4-2) ARE correct and are confirmed by the same source.
 
 ## Coaching consequences
 - "Scout the carousel" only applies four times a game, and the last chance to grab a specific component off a carousel is **4-4**. Component planning must be finished by then.
 - After 4-4 the only new items come from armories (5-4+), PVE drops and augments — so a component you are missing at 4-4 is probably never coming. Commit the item build at 4-4, do not hold components hoping for a carousel.
 - The armory rounds have only 15 s of planning (vs 30 s), so the coach must fire early and briefly on x-4 from stage 5 on.
+
+
+*(triggers.py round classification verified against map data — fixed 2026-08-11.)*
 
 # Phase Timings — Set 17 (seconds)
 
@@ -116,81 +94,6 @@ Corollary: any added extraction must be **local and parallel**. A second network
 
 Source: map22.bin.json, `Maps/Shipping/Map22/Rounds/<RoundName>.mPlanning.mDuration` etc.
 
-# Player Damage — Set 17
-
-Base damage taken on a loss, by stage (added to the per-surviving-unit damage the winner's board deals):
-
-| Stage | Base damage |
-|------:|------------:|
-| 1 | 0 |
-| 2 | 3 |
-| 3 | 5 |
-| 4 | 7 |
-| 5 | 10 |
-| 6 | 12 |
-| 7 | 17 |
-| 8+ | 10000 (sudden death — any loss eliminates) |
-
-Also in the same constants block: `DamageToHealthConversion = 0.20`.
-
-## Coaching consequences
-- Damage nearly doubles from stage 4 (7) to stage 6 (12) and again to stage 7 (17). A 40 HP lead at 4-1 is roughly six free losses; at 6-1 it is barely three.
-- **Direct counter to the over-saving leak:** at stage 5+ a lost round costs >= 10 base HP plus unit damage — usually 15-25 total. Holding 50 gold for interest earns 5 gold. Two losses at stage 5 cost more HP than three rounds of interest are worth. Below ~40 HP at stage 5, or ~50 HP at stage 6, the correct play is to spend down to the level/board that wins the next round.
-- Stage 8 is lethal: any loss from 8-1 onward ends the game regardless of HP. Every plan must assume the game ends in stage 7.
-
-Source: map22.bin.json, object {489202b9}.mConstants.PlayerDamageStage1..8.
-
-# Rolldown Math — Set 17
-
-Derived from the verified shop-odds table and pool sizes. `p_slot = tier_odds(level) * copies_of_target_left / copies_of_tier_left`; per-shop `p = 1 - (1 - p_slot)^5`; each roll costs 2 gold.
-
-## Chance of seeing at least one copy of ONE named champion, per 2g roll, full pool
-
-| Level | 1-cost | 2-cost | 3-cost | 4-cost | 5-cost |
-|------:|-------:|-------:|-------:|-------:|-------:|
-| 4  | 18.2% | 11.0% |  5.6% |  0.0% |  0.0% |
-| 5  | 15.1% | 12.1% |  7.5% |  0.7% |  0.0% |
-| 6  | 10.3% | 14.5% |  9.3% |  1.8% |  0.0% |
-| 7  |  6.6% | 11.0% | 14.5% |  3.5% |  0.6% |
-| 8  |  5.2% |  7.5% | 11.7% | 10.3% |  1.9% |
-| 9  |  3.5% |  6.4% |  9.3% | 11.2% |  9.0% |
-| 10 |  1.8% |  3.8% |  7.5% | 13.5% | 14.7% |
-| 11 |  0.4% |  0.8% |  4.5% | 16.6% | 20.0% |
-
-## Expected gold per copy found (2g / p)
-
-| Level | 1c | 2c | 3c | 4c | 5c |
-|------:|---:|---:|---:|---:|---:|
-| 8  |  38g |  27g |  17g |  19g | 107g |
-| 9  |  57g |  31g |  22g |  18g |  22g |
-| 10 | 113g |  53g |  27g |  15g |  14g |
-
-## The contest penalty (level 8, one named 4-cost, 10 copies total)
-
-| Copies held by other players | Chance per roll | Gold per copy |
-|-----------------------------:|----------------:|--------------:|
-| 0 | 10.3% | 19g |
-| 3 |  7.4% | 27g |
-| 5 |  5.4% | 37g |
-| 7 |  3.3% | 60g |
-
-**This is the number that makes scouting actionable.** Seeing 5 copies of your intended carry on other boards triples the gold cost of your rolldown, from ~19g to ~37g per copy. If a scout at 4-1 shows two opponents already 2-starred your carry (6 copies gone), pivot; do not roll into it.
-
-Caveat: this assumes uniform pool depletion within the tier, which is a lower bound on the penalty — the tier denominator also shrinks, which slightly helps, and it is included above.
-
----
-type: reference
-category: game-math
-scope: set-bound
-set: 17
-patch: "17.8"
-verified: 2026-08-10
-expires: 2026-08-26  # Set 18 "Enchanted Wilds" launch — REGENERATE ALL OF THIS
----
-
-# Core Game Math — Set 17
-
-Every econ/roll recommendation must be arithmetic against these tables, not vibes.
 
 ## Gold income
 
@@ -216,17 +119,8 @@ Every econ/roll recommendation must be arithmetic against these tables, not vibe
 
 **Consequence: every gold above 50 earns literally nothing.** Gold 51+ is free to spend. Sitting at 62 gold is identical in income to sitting at 50 gold, minus 12 gold of board strength you chose not to buy.
 
-## Streak gold
 
-| Streak length | Bonus (win OR loss) |
-|---|---|
-| 2 | +1 |
-| 3 | +1 |
-| 4 | +1 |
-| 5 | +2 |
-| 6+ | +3 |
-
-A win streak is worth streak bonus **+1 win gold** = up to +4/round. A loss streak of the same length is worth only the streak bonus. **Win streaking out-earns loss streaking at every streak length.** Loss streaking is a HP-for-tempo trade, never a gold-maximizing play.
+Streak bonuses (win OR loss streaks, identical amounts): streak of 2 = +0, streak of 3-4 = +1, streak of 5 = +2, streak of 6+ = +3. A PvP win additionally pays +1, so a max win streak earns +4/round vs +3 for a max loss streak — win streaking still strictly out-earns loss streaking. Streaks persist through PvE/carousel rounds (you still collect the bonus). CONDITION: applies to the round's income calculation every round. BOUNDARY: a 2-round streak pays nothing — do not spend gold to 'protect' a 2-streak; the earliest round worth protecting is the 3rd consecutive result. Interest is calculated BEFORE passive income lands (you must already hold the breakpoint at income time, so ending combat at 49g pays +4, not +5).
 
 ## XP / leveling (3 independent sources agree: tft-lab, op.gg, LoL wiki)
 
@@ -245,72 +139,8 @@ Game starts at level 2. Max level 10. **2 free XP per round. Buy 4 XP for 4 gold
 
 Each round you wait refunds 2 gold of that cost (2 free XP). Waiting one extra round to level = 2 gold saved but one round of weaker board.
 
-## Shop odds by level (majority source: metabot.gg + redeemertft, corroborated by tft.ninja L8=30%/L9=33%,15%)
 
-| Level | 1-cost | 2-cost | 3-cost | 4-cost | 5-cost |
-|---|---|---|---|---|---|
-| 1-2 | 100% | 0 | 0 | 0 | 0 |
-| 3 | 75% | 25% | 0 | 0 | 0 |
-| 4 | 55% | 30% | 15% | 0 | 0 |
-| 5 | 45% | 33% | 20% | 2% | 0 |
-| 6 | 30% | 40% | 25% | 5% | 0 |
-| 7 | 19% | 30% | 40% | 10% | 1% |
-| 8 | 15% | 20% | 32% | **30%** | 3% |
-| 9 | 10% | 17% | 25% | 33% | **15%** |
-| 10 | 5% | 10% | 20% | 40% | 25% |
-| 11 | 1% | 2% | 12% | 50% | 35% |
-
-**THE key breakpoint: 4-cost odds triple from L7 (10%) to L8 (30%).** This is the single largest probability jump in the game. It is also why L8→L9 barely helps your 4-cost (30%→33%) but transforms your 5-cost (3%→15%).
-
-**3-cost peaks at level 7 (40%).** Level 6 is 25%. A 3-cost reroll board that can afford level 7 rolls 1.6x more efficiently than at level 6.
-
-## Pool sizes (metabot.gg + esportstales agree; redeemertft's 29/22 is the outlier — ignore it)
-
-| Cost | Copies per champion | Unique champs (CommunityDragon TFTSet17) | Total tier pool |
-|---|---|---|---|
-| 1 | 30 | 18 | 540 |
-| 2 | 25 | 13 | 325 |
-| 3 | 18 | 13 | 234 |
-| 4 | 10 | 14 | 140 |
-| 5 | 9 | 10 | 90 |
-
-Shop refresh = 2 gold, 5 slots.
-
-## Player damage on a PvP loss
-
-**Damage = base(stage) + number of surviving enemy units.** Star level does NOT change per-unit damage — a 3-star costs you the same 1 as a 1-star.
-
-| Stage | Base damage |
-|---|---|
-| 1 | 0 |
-| 2 | 2 |
-| 3 | 5 |
-| 4 | 8 |
-| 5 | 10 |
-| 6 | 12 |
-| 7+ | 17 |
-
-Worked: stage 3 loss w/ 5 survivors = 10. Stage 4 w/ 6 = 14. Stage 6 w/ 9 = 21. Stage 6 clean wipe (0 survivors) = 12. Stage 7 w/ 9 = 26.
-
-**Corollary:** losing 8-2 (barely) at stage 5 costs ~11-12 HP; losing 8-0 costs ~19. Getting one more unit to survive is worth real HP. Never sell down your board before a fight you will lose.
-
-## Round structure
-
-- **Augments: 2-1, 3-2, 4-2.**
-- **Carousels: X-4 for stages 2 through 7.**
-- **PvE: 1-2, 1-3, 1-4 (minions), 2-7 (Krugs), 3-7 (Wolves/Raptors), 4-7, 5-7/6-7/7-7 (boss).**
-- PvE, carousel and augment rounds deal you no HP damage.
-
-Stage 2 has 7 rounds; every stage 2+ follows X-1..X-7 with X-4 carousel and X-7 PvE.
-
----
-type: reference
-category: game-math
-scope: derived
-set: 17
-method: "p(slot) = shop_odds[level][cost] x (copies_left / tier_pool_remaining); 5 slots per 2g refresh"
-verified: 2026-08-10
----
+On a PvP loss: damage = base(stage) + 1 per surviving enemy unit. Star level and cost do NOT change per-unit damage (a 3-star 5-cost costs the same 1 as a 1-star 1-cost). Base by stage: 2 → 2, 3 → 5, 4 → 8, 5 → 10, 6 → 12, 7+ → 17. Worked: stage 5 loss vs 7 survivors = 17 HP; stage 7 vs 9 survivors = 26 HP. CONDITION: PvP rounds only; PvE/carousel/augment rounds deal no player damage. BOUNDARY: verified against patch 17.3 guide text; the vault's map-data extract claims stage 2 = 3, stage 4 = 7 and a stage-8 sudden-death (any loss lethal) — reverify both against 17.8 patch notes before trusting either at the margin. The coaching consequences (never sell down before a losing fight; each extra surviving ally saves ~1-3 HP; stage-5+ losses cost 15-25 HP vs 5g/round max interest) hold under both tables.
 
 # Rolldown Math — gold per copy
 
@@ -342,3 +172,10 @@ Computed from the verified Set 17 odds + pool tables. Model: each shop slot inde
 **RULE R-4 — 3-cost reroll wants level 7, not level 6.** CONDITION: your comp's 3-star target is a 3-cost. At L7 a 3-cost is 40% of the shop vs 25% at L6; gold to 3-star drops from ~125g to ~78g (-38%). BOUNDARY: level 7 costs 36 XP AND raises your unit cap, which raises your board strength requirement; only do it if you can hold ~30g at L7 to actually roll. If you can only afford the level, stay 6 and roll.
 
 **RULE R-5 — Never roll gold at level 7 looking for a 4-cost.** CONDITION: always, for 4-cost-centric comps. 4-cost odds are 10% at L7 vs 30% at L8. Every 2 gold spent at L7 buys one-third of the 4-costs it would buy at L8. Leveling to 8 costs at most 60g; that 60g is repaid the moment you roll. BOUNDARY: you may roll at level 7 for 3-costs (40% — the peak) or to complete a 2-star frontline that keeps you alive; that is not "rolling for 4-costs."
+
+
+*(Note: 1/2-cost rows computed with corrected pool sizes 30/25 copies; differences from the earlier 29/22 figures are within a few gold.)*
+
+E-9 — Go for level 10 when stable at 9; it is the single biggest placement delta in my measured data (L10 avg 2.52 over 58 games vs L9 avg 5.08 over 97). Cost: 68 XP = at most 68g, refunded 2g/round by free XP. At 10, per-slot odds are 4-cost 40% / 5-cost 25% — level 10 is where 5-cost 2-stars become buyable (9 copies each, ~14g/copy expected). CONDITION: at stage 5-3 onward, when (a) HP > ~45 or top-3 HP in lobby, (b) the level-9 board is already 2★-capped (rolling at 9 has a named target or none), and (c) gold after leveling >= 20 to fill the 10th slot with a real unit. Trigger for the coach: any planning phase at level 9 with 60+ gold and no named roll target = buy XP now (this is the exact 'died with 30+ banked' signature). BOUNDARY: do NOT force 10 while bleeding out (<40 HP: 2-star what you have instead — T-2), and never level 10 leaving <10g with an empty 10th slot; a 9-board + 40g of upgrades beats a 10-board + benchwarmer.
+
+B-1 — Hold pairs of units your comp can use; sell pairs your comp cannot. CONDITION: stages 2-3, bench slack available. A pair is a free option on a 2-star (the pool rewards holding: each copy you hold both advances you and denies contesters). Priority to hold: pairs of your likely carry/tank line > pairs of units sharing your items' type > contested-line pairs held purely to deny (only if bench space is free). BOUNDARY: (a) never hold a pair through an interest breakpoint you would otherwise hit — selling a 1-cost pair to reach 20/30/40g pays compounding interest, the pair usually does not; (b) sell all speculative pairs at your committed rolldown (4-2): bench slots are needed for the roll and gold-in-pairs is gold not rolling; (c) 4-cost pairs are exempt — always hold (10 copies each makes re-finding expensive). B-2 — Never roll with a full bench: you cannot buy what you hit. Empty >=2 bench slots before any planned rolldown.

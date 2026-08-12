@@ -73,8 +73,19 @@ def trait_breakpoints(set_obj: Dict[str, Any]) -> List[Dict[str, Any]]:
         desc = re.sub(r"<[^>]+>", "", str(trait.get("desc") or ""))
         desc = re.sub(r"\s+", " ", desc).strip()
         out.append({"name": trait.get("name") or clean_name(
-            str(trait.get("apiName", ""))), "breakpoints": points,
-            "desc": desc[:240]})
+            str(trait.get("apiName", ""))),
+            "api": str(trait.get("apiName", "")),
+            "breakpoints": points, "desc": desc[:240]})
+    # Several variant traits can share one display name (Set 17 has eight
+    # distinct 'Stargazer' traits with different breakpoints). Collapsing them
+    # makes breakpoint math impossible, so disambiguate from the api name.
+    from collections import Counter
+    dupes = {n for n, c in Counter(t["name"] for t in out).items() if c > 1}
+    for t in out:
+        if t["name"] in dupes:
+            suffix = clean_name(t["api"])
+            if suffix and suffix.lower() != t["name"].lower():
+                t["name"] = "%s (%s)" % (t["name"], suffix)
     out.sort(key=lambda t: t["name"])
     return out
 
@@ -99,8 +110,13 @@ def item_recipes(data: Dict[str, Any], set_prefix: str) -> List[Dict[str, Any]]:
         for part in comp:
             src = by_api.get(part)
             names.append(clean_name(str(src.get("name") if src else part)))
-        out.append({"item": clean_name(str(item.get("name") or api)),
-                    "components": names})
+        label = clean_name(str(item.get("name") or api))
+        # Drop degenerate rows: unnamed items and self-referential recipes.
+        if not label or label.lower().startswith("tft item name"):
+            continue
+        if any(n.lower() == label.lower() for n in names):
+            continue
+        out.append({"item": label, "components": names})
     # Deduplicate by item name; some sets re-declare the same recipe.
     seen = set()
     unique = []
