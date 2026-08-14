@@ -654,14 +654,16 @@ STANDING_RULES = """== STANDING RULES (apply every tick) ==
 9. I am mid-planning-phase with ~30 seconds. Terse beats complete."""
 
 OUTPUT_CONTRACT = """== OUTPUT CONTRACT (obey exactly) ==
-- MAX 4 bullets, most urgent first. Fewer is better — one bullet is a fine answer.
-- Each bullet starts with [ECON], [ITEM], [BOARD] or [COMBAT].
-- Each bullet cites at least one observed number from KNOWN or DELTA
-  (e.g. "at 42g", "-18 HP in 3 rounds", "lv7 on 3-5").
-- One short imperative line each. No preamble, no headers, no sign-off, no
-  markdown bullets beyond the tag, no restating my state back to me.
-- If the state is too thin to advise (most fields UNKNOWN), say so in one line
-  and name the single field that would unblock you."""
+I read this on a small overlay mid-game. Telegraphic, not prose.
+- MAX 3 bullets, most urgent first. One bullet is a fine answer.
+- Each bullet: tag + imperative + one number. UNDER 60 CHARACTERS.
+  GOOD: "[ECON] Roll to 30g — L4 streak, 32hp"
+  GOOD: "[BOARD] Buy Kindred(4g), bench Akali"
+  BAD: anything with a subordinate clause or explanation.
+- Tags: [ECON] [ITEM] [BOARD] [COMBAT]. No preamble, no reasoning, no
+  restating my state. The WHY only if I ask (TIP NOW note).
+- State too thin? One line: "Need <field> — recalibrate or TIP NOW."
+"""
 
 
 def _jsonify(value: Any) -> Any:

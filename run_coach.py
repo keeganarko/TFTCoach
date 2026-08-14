@@ -1181,7 +1181,29 @@ def _macos_float_over_game(root: Any) -> str:
         return "float: failed (%s)" % exc
 
 
+def refresh_brain() -> int:
+    """`./coach refresh` — pull every live data feed into the vault."""
+    config.ensure_dirs()
+    jobs = (("comps + tier snapshot", "tftcoach.meta_feed", "refresh"),
+            ("unit/item/augment stats", "tftcoach.meta_feed", "refresh_stats"),
+            ("high-elo playbook", "tftcoach.highelo", "refresh"))
+    failed = 0
+    for label, module_name, fn_name in jobs:
+        fn = pick(optional_import(module_name), fn_name)
+        try:
+            ok, msg = fn(verbose=False) if fn else (False, "module missing")
+        except Exception as exc:
+            ok, msg = False, str(exc)
+        print("%s %-26s %s" % ("OK  " if ok else "FAIL", label, msg))
+        failed += 0 if ok else 1
+    print("\nBrain refreshed." if not failed else
+          "\n%d feed(s) failed — old snapshots kept." % failed)
+    return 1 if failed else 0
+
+
 def main() -> int:
+    if "refresh" in sys.argv or "--refresh" in sys.argv:
+        return refresh_brain()
     if "--check" in sys.argv:
         config.ensure_dirs()
         return headless_check()
