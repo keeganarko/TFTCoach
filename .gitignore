@@ -5,3 +5,4 @@ __pycache__/
 regions.json
 .claude/settings.local.json
 .claude/settings.local.json.bak
+.venv/
