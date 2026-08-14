@@ -856,7 +856,7 @@ class CoachApp:
             pass                          # silently skip — documented behaviour
 
     # ── pipeline ─────────────────────────────────────────────────────────
-    def build_state(self) -> Tuple[GameState, str]:
+    def build_state(self, want_vision: bool = False) -> Tuple[GameState, str]:
         """Capture + extract. Returns (state, prompt) for the current mode."""
         first = self.coach.session_id is None
         if self.mode == MODE_OCR:
@@ -868,9 +868,14 @@ class CoachApp:
                 self.mode = MODE_FULLFRAME
                 self.ui(lambda e=exc: self.set_status("ocr failed: %s" % e))
                 return self.build_state()
+            # The vision pass is a SECOND full Claude call before the coach
+            # call — it doubles tick latency. Routine ticks coach from OCR
+            # state alone; board/bench vision runs only on demand (TIP NOW,
+            # augment rounds), where the extra ~15s is worth it.
             crops_wanted = {k: self.rects[k] for k in config.VISION_FIELDS
                             if k in self.rects}
-            needs_vision = not state.board.known or not state.bench.known
+            needs_vision = want_vision and (
+                not state.board.known or not state.bench.known)
             if crops_wanted and needs_vision:
                 state = self.coach.vision_fill(state, self.capture.crops(frame, crops_wanted))
             self.timeline.append(state)
@@ -890,7 +895,8 @@ class CoachApp:
         self.busy = True
         self.ui(lambda: self.set_status("working (%s)" % trigger))
         try:
-            state, prompt = self.build_state()
+            want_vision = manual or trigger in ("augment", "carousel")
+            state, prompt = self.build_state(want_vision)
             if note:
                 prompt += "\nMy note: %s" % note
             self.last_state = state
