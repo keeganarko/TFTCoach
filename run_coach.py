@@ -697,6 +697,24 @@ class CoachApp:
         for w in (header, self.title_lbl):
             w.bind("<Button-1>", lambda _e: self.toggle_collapse())
 
+        # Packed IMMEDIATELY (before the check panel and advice box): Tk pack
+        # starves the LAST-packed widgets when space runs out, and the control
+        # bar must be the last thing standing, not the first casualty.
+        bar = tk.Frame(root, bg=COL_BG, pady=3)
+        bar.pack(side="bottom", fill="x")
+        self.btn = tk.Button(bar, text="START", font=("Courier", 9, "bold"),
+                             fg=COL_OK, command=self.toggle)
+        self.btn.pack(side="left", padx=4)
+        for label, cmd in (("TIP", self.tip_now), ("SCOUT", self.scout),
+                           ("END", self.end_game), ("CAL", self.show_calibrate)):
+            tk.Button(bar, text=label, font=("Courier", 9),
+                      command=cmd).pack(side="left", padx=2)
+        tk.Button(bar, text="X", font=("Courier", 9),
+                  command=self.quit).pack(side="right", padx=4)
+        self.status = tk.Label(root, text="", font=("Courier", 8), fg=COL_DIM,
+                               bg=COL_BG, anchor="w")
+        self.status.pack(side="bottom", fill="x", padx=8)
+
         # self-check panel (auto-hides once everything is green)
         self.check = tk.Text(root, height=7, wrap="word", font=("Courier", 9),
                              bg=COL_PANEL, fg=COL_DIM, relief="flat", bd=0,
@@ -713,31 +731,14 @@ class CoachApp:
         for tag, color in TAG_COLORS.items():
             self.text.tag_configure(tag, foreground=color)
 
-        # Bottom-up packing ORDER MATTERS: in Tk, widgets packed earlier keep
-        # their space when the window shrinks. The button bar is the control
-        # surface — it must never be the thing that gets squeezed out, so it
-        # (and the status line) pack FIRST, pinned to the bottom edge.
-        bar = tk.Frame(root, bg=COL_BG, pady=3)
-        bar.pack(side="bottom", fill="x")
-        self.btn = tk.Button(bar, text="START", font=("Courier", 9, "bold"),
-                             fg=COL_OK, command=self.toggle)
-        self.btn.pack(side="left", padx=4)
-        for label, cmd in (("TIP", self.tip_now), ("SCOUT", self.scout),
-                           ("END", self.end_game), ("CAL", self.show_calibrate)):
-            tk.Button(bar, text=label, font=("Courier", 9),
-                      command=cmd).pack(side="left", padx=2)
-        tk.Button(bar, text="X", font=("Courier", 9),
-                  command=self.quit).pack(side="right", padx=4)
 
-        self.status = tk.Label(root, text="", font=("Courier", 8), fg=COL_DIM,
-                               bg=COL_BG, anchor="w")
-        self.status.pack(side="bottom", fill="x", padx=8)
 
         self.set_text("Running self-check...")
         self.set_status()
         root.after(UI_TICK_MS, self.drain_queue)
         threading.Thread(target=self.self_check, daemon=True).start()
         self.install_hotkey()
+        root.after(6000, self.watch_game)
 
     # ── UI plumbing (worker threads never touch Tk) ──────────────────────
     def drain_queue(self) -> None:
@@ -777,6 +778,38 @@ class CoachApp:
         # space — problems keep it visible, and set_status carries the rest.
         if rows and all(tag == "ok" for tag, _l, _d in rows):
             self.root.after(4000, self.check.pack_forget)
+
+    @staticmethod
+    def _game_running() -> bool:
+        """True while the actual TFT/League GAME process exists (not the
+        lobby client — 'LeagueClient' runs all day; the game process only
+        exists in a match)."""
+        try:
+            out = subprocess.run(["pgrep", "-if", "League of Legends"],
+                                 capture_output=True, text=True, timeout=5)
+            return bool(out.stdout.strip())
+        except Exception:
+            return False
+
+    def watch_game(self) -> None:
+        """Auto start/stop with the game so nobody has to press START.
+
+        Polls the process list every 8s. Game appears -> start the loop;
+        game exits -> stop and prompt for END (the vault write stays manual
+        because only the player knows the placement)."""
+        try:
+            up = self._game_running()
+            if up and not self.running:
+                self.toggle()
+                self.set_text("Game detected — coaching started.")
+            elif not up and self.running:
+                self.toggle()
+                self.set_text("Game over — press END to write the vault note\n"
+                              "(placement + comp), or START for the next game.")
+                play_alert()
+        except Exception:
+            pass
+        self.root.after(8000, self.watch_game)
 
     def toggle_collapse(self) -> None:
         """Header click: shrink to a title bar (game visible), click to restore."""
