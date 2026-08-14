@@ -713,25 +713,25 @@ class CoachApp:
         for tag, color in TAG_COLORS.items():
             self.text.tag_configure(tag, foreground=color)
 
+        # Bottom-up packing ORDER MATTERS: in Tk, widgets packed earlier keep
+        # their space when the window shrinks. The button bar is the control
+        # surface — it must never be the thing that gets squeezed out, so it
+        # (and the status line) pack FIRST, pinned to the bottom edge.
+        bar = tk.Frame(root, bg=COL_BG, pady=3)
+        bar.pack(side="bottom", fill="x")
+        self.btn = tk.Button(bar, text="START", font=("Courier", 9, "bold"),
+                             fg=COL_OK, command=self.toggle)
+        self.btn.pack(side="left", padx=4)
+        for label, cmd in (("TIP", self.tip_now), ("SCOUT", self.scout),
+                           ("END", self.end_game), ("CAL", self.show_calibrate)):
+            tk.Button(bar, text=label, font=("Courier", 9),
+                      command=cmd).pack(side="left", padx=2)
+        tk.Button(bar, text="X", font=("Courier", 9),
+                  command=self.quit).pack(side="right", padx=4)
+
         self.status = tk.Label(root, text="", font=("Courier", 8), fg=COL_DIM,
                                bg=COL_BG, anchor="w")
-        self.status.pack(fill="x", padx=10)
-
-        bar = tk.Frame(root, bg=COL_BG, pady=5)
-        bar.pack(fill="x")
-        self.btn = tk.Button(bar, text="START", font=("Courier", 10, "bold"),
-                             fg=COL_OK, command=self.toggle)
-        self.btn.pack(side="left", padx=6)
-        tk.Button(bar, text="TIP NOW", font=("Courier", 9),
-                  command=self.tip_now).pack(side="left", padx=3)
-        tk.Button(bar, text="SCOUT", font=("Courier", 9),
-                  command=self.scout).pack(side="left", padx=4)
-        tk.Button(bar, text="END GAME", font=("Courier", 9),
-                  command=self.end_game).pack(side="left", padx=3)
-        tk.Button(bar, text="CALIBRATE", font=("Courier", 9),
-                  command=self.show_calibrate).pack(side="left", padx=3)
-        tk.Button(bar, text="QUIT", font=("Courier", 9),
-                  command=self.quit).pack(side="right", padx=6)
+        self.status.pack(side="bottom", fill="x", padx=8)
 
         self.set_text("Running self-check...")
         self.set_status()
