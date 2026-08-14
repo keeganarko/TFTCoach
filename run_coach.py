@@ -1104,6 +1104,35 @@ def headless_check() -> int:
     return 0
 
 
+def _macos_float_over_game(root: Any) -> str:
+    """Make the overlay visible above League in borderless mode on macOS.
+
+    Tk's -topmost only floats above windows in the current Space. League's
+    borderless mode occupies its own Space, so the overlay silently ends up
+    behind the game and the user has to alt-tab. Raising the real NSWindow
+    level and letting it join all Spaces (incl. fullscreen ones) fixes it.
+    Best-effort: without pyobjc the overlay still works in the same Space.
+    """
+    if platform.system() != "Darwin":
+        return ""
+    try:
+        import AppKit
+        root.update_idletasks()
+        floated = 0
+        for win in AppKit.NSApp.windows():
+            win.setLevel_(AppKit.NSStatusWindowLevel)
+            win.setCollectionBehavior_(
+                AppKit.NSWindowCollectionBehaviorCanJoinAllSpaces
+                | AppKit.NSWindowCollectionBehaviorFullScreenAuxiliary)
+            floated += 1
+        return "float: over all Spaces (%d win)" % floated
+    except ImportError:
+        return ("float: pyobjc missing — overlay only floats in the same "
+                "Space. pip install pyobjc-framework-Cocoa==10.3.1")
+    except Exception as exc:
+        return "float: failed (%s)" % exc
+
+
 def main() -> int:
     if "--check" in sys.argv:
         config.ensure_dirs()
@@ -1116,7 +1145,20 @@ def main() -> int:
         return 1
     config.ensure_dirs()
     root = tk.Tk()
-    CoachApp(root)
+    app = CoachApp(root)
+
+    def assert_float() -> None:
+        msg = _macos_float_over_game(root)
+        if msg:
+            try:
+                app.set_status(msg)
+            except Exception:
+                pass
+        # Re-assert every 20s: some games reset window ordering on focus
+        # changes, and the call is idempotent and cheap.
+        root.after(20000, assert_float)
+
+    root.after(500, assert_float)
     root.mainloop()
     return 0
 
