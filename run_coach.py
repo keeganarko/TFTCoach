@@ -678,19 +678,26 @@ class CoachApp:
             root.attributes("-alpha", 0.94)
         except Exception:
             pass
-        root.geometry("470x560+20+20")
+        # Compact by default: an overlay that hides the game is worse than no
+        # overlay. Resizable; header click toggles a bar-only collapsed mode.
+        root.geometry("360x240+20+20")
         root.configure(bg=COL_BG)
+        root.minsize(260, 34)
 
-        header = tk.Frame(root, bg=COL_PANEL, pady=5)
+        header = tk.Frame(root, bg=COL_PANEL, pady=3)
         header.pack(fill="x")
-        tk.Label(header, text="TFT COACH — Option B  •  local state + Claude",
-                 font=("Courier", 11, "bold"), fg=COL_WARN, bg=COL_PANEL
-                 ).pack(side="left", padx=10)
-        self.dot = tk.Label(header, text="●", font=("Courier", 14), fg="#444",
+        self.title_lbl = tk.Label(header, text="TFT COACH  (click to collapse)",
+                 font=("Courier", 10, "bold"), fg=COL_WARN, bg=COL_PANEL)
+        self.title_lbl.pack(side="left", padx=8)
+        self.dot = tk.Label(header, text="●", font=("Courier", 12), fg="#444",
                             bg=COL_PANEL)
-        self.dot.pack(side="right", padx=10)
+        self.dot.pack(side="right", padx=8)
+        self.collapsed = False
+        self._expanded_geo = None
+        for w in (header, self.title_lbl):
+            w.bind("<Button-1>", lambda _e: self.toggle_collapse())
 
-        # self-check panel
+        # self-check panel (auto-hides once everything is green)
         self.check = tk.Text(root, height=7, wrap="word", font=("Courier", 9),
                              bg=COL_PANEL, fg=COL_DIM, relief="flat", bd=0,
                              padx=10, pady=6, state="disabled")
@@ -700,8 +707,8 @@ class CoachApp:
         self.check.tag_configure("warn", foreground=COL_WARN)
 
         self.text = scrolledtext.ScrolledText(
-            root, wrap=tk.WORD, font=("Courier", 11), bg=COL_TEXTBG, fg=COL_FG,
-            relief="flat", bd=0, padx=10, pady=8, state="disabled", height=11)
+            root, wrap=tk.WORD, font=("Courier", 10), bg=COL_TEXTBG, fg=COL_FG,
+            relief="flat", bd=0, padx=8, pady=6, state="disabled", height=7)
         self.text.pack(fill="both", expand=True, padx=4, pady=2)
         for tag, color in TAG_COLORS.items():
             self.text.tag_configure(tag, foreground=color)
@@ -766,6 +773,25 @@ class CoachApp:
             mark = "OK  " if tag == "ok" else ("FAIL" if tag == "bad" else "WARN")
             self.check.insert("end", "%s  %-11s %s\n" % (mark, label, detail), tag)
         self.check.config(state="disabled")
+        # All green: the panel has said everything it needed to. Reclaim the
+        # space — problems keep it visible, and set_status carries the rest.
+        if rows and all(tag == "ok" for tag, _l, _d in rows):
+            self.root.after(4000, self.check.pack_forget)
+
+    def toggle_collapse(self) -> None:
+        """Header click: shrink to a title bar (game visible), click to restore."""
+        if self.collapsed:
+            self.root.geometry(self._expanded_geo or "360x240")
+            self.collapsed = False
+            self.title_lbl.config(text="TFT COACH  (click to collapse)")
+        else:
+            self._expanded_geo = self.root.geometry()
+            # keep x/y, collapse height to the header only
+            pos = self._expanded_geo.split("+", 1)
+            xy = ("+" + pos[1]) if len(pos) == 2 else "+20+20"
+            self.root.geometry("300x30" + xy)
+            self.collapsed = True
+            self.title_lbl.config(text="TFT COACH  (click to expand)")
 
     def set_status(self, extra: str = "") -> None:
         st = self.last_state
