@@ -240,12 +240,27 @@ class CaptureAdapter:
         ext = "jpg" if downscale else "png"
         path = os.path.join(config.CAPTURE_DIR, "cap_%s.%s" % (stamp, ext))
         if self._fn_screen is not None:
-            got = call_best_effort(self._fn_screen, path)
-            if isinstance(got, str) and got:
-                return got
-            if os.path.exists(path):
-                return path
-            raise RuntimeError("tftcoach.capture returned no usable frame path")
+            # capture_screen(monitor=None) -> PIL.Image. Call it with NO
+            # arguments: its first parameter is the monitor INDEX, and passing
+            # the output path positionally became int("/path/to/cap.png").
+            try:
+                img = self._fn_screen()
+            except Exception:
+                img = None
+            if isinstance(img, str) and img and os.path.exists(img):
+                return img                     # some backends save themselves
+            if img is not None and hasattr(img, "save"):
+                try:
+                    if downscale and getattr(img, "width", 0) > self.MAX_WIDTH_FALLBACK:
+                        h = int(img.height * self.MAX_WIDTH_FALLBACK / img.width)
+                        img = img.resize((self.MAX_WIDTH_FALLBACK, h))
+                    if path.endswith(".png"):
+                        img.save(path)
+                    else:
+                        img.convert("RGB").save(path, "JPEG", quality=88)
+                    return path
+                except Exception:
+                    pass                       # fall through to the builtin
         return self._builtin_frame(path, downscale)
 
     def _builtin_frame(self, path: str, downscale: bool) -> str:
@@ -269,13 +284,14 @@ class CaptureAdapter:
         return path
 
     def crops(self, frame_path: str, rects: Dict[str, List[int]]) -> Dict[str, str]:
-        """Crop the given rects out of an existing frame. Returns key -> path."""
+        """Crop the given rects out of an existing frame. Returns key -> path.
+
+        Always crops from THIS frame via PIL. capture.capture_regions grabs the
+        live screen instead, which by vision-call time may show combat — the
+        crops must match the frame the rest of the state was extracted from.
+        """
         if not rects:
             return {}
-        if self._fn_regions is not None:
-            got = call_best_effort(self._fn_regions, frame_path, rects)
-            if isinstance(got, dict):
-                return {k: v for k, v in got.items() if isinstance(v, str)}
         try:
             from PIL import Image
         except Exception:
