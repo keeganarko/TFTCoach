@@ -811,6 +811,16 @@ class CoachApp:
             pass
         self.root.after(8000, self.watch_game)
 
+    def dashboard_mode(self) -> None:
+        """Second-display layout: big readable type, no need to stay tiny."""
+        try:
+            self.text.config(font=("Courier", 18), padx=16, pady=12)
+            self.check.config(font=("Courier", 12))
+            self.status.config(font=("Courier", 12))
+            self.title_lbl.config(text="TFT COACH — second display")
+        except Exception:
+            pass
+
     def toggle_collapse(self) -> None:
         """Header click: shrink to a title bar (game visible), click to restore."""
         if self.collapsed:
@@ -1234,6 +1244,34 @@ def refresh_brain() -> int:
     return 1 if failed else 0
 
 
+def _second_screen_geometry() -> Optional[str]:
+    """Geometry filling the largest NON-primary display, or None.
+
+    The right home for the HUD is a second monitor: everything visible, zero
+    game occlusion, no Space-floating tricks needed. Cocoa frames use a
+    bottom-left origin relative to the primary screen; Tk uses top-left, so
+    convert. Single display -> None (compact overlay behaviour unchanged).
+    """
+    if not IS_MAC:
+        return None
+    try:
+        import AppKit
+        screens = AppKit.NSScreen.screens()
+        if len(screens) < 2:
+            return None
+        primary = screens[0]                     # carries the menu bar
+        others = [scr for scr in screens if scr != primary]
+        target = max(others, key=lambda scr: scr.frame().size.width
+                     * scr.frame().size.height)
+        pf, tf = primary.frame(), target.frame()
+        x = int(tf.origin.x)
+        y = int(pf.size.height - (tf.origin.y + tf.size.height))
+        return "%dx%d+%d+%d" % (int(tf.size.width), int(tf.size.height) - 30,
+                                x, max(0, y))
+    except Exception:
+        return None
+
+
 def main() -> int:
     if "refresh" in sys.argv or "--refresh" in sys.argv:
         return refresh_brain()
@@ -1249,6 +1287,15 @@ def main() -> int:
     config.ensure_dirs()
     root = tk.Tk()
     app = CoachApp(root)
+
+    # Second monitor present -> take it over with a readable dashboard layout
+    # (game monitor stays untouched; capture always reads the primary display).
+    # Force the small game-overlay instead with:  ./coach --primary
+    if "--primary" not in sys.argv:
+        second = _second_screen_geometry()
+        if second:
+            root.geometry(second)
+            app.dashboard_mode()
 
     def assert_float() -> None:
         msg = _macos_float_over_game(root)
