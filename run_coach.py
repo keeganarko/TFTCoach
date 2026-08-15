@@ -1266,7 +1266,8 @@ def _second_screen_geometry() -> Optional[str]:
         # which is exactly what Tk geometry strings accept (negative ok).
         try:
             import mss
-            with mss.mss() as sct:
+            ctor = getattr(mss, "MSS", None) or mss.mss   # renamed in mss v10
+            with ctor() as sct:
                 mons = sct.monitors           # [0]=virtual union, [1]=primary
             if len(mons) < 3:                 # primary only -> compact overlay
                 return None
