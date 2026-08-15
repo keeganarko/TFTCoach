@@ -244,7 +244,11 @@ class CaptureAdapter:
             # arguments: its first parameter is the monitor INDEX, and passing
             # the output path positionally became int("/path/to/cap.png").
             try:
-                img = self._fn_screen()
+                # First positional IS the monitor index (see the earlier
+                # path-as-monitor bug). With 3 displays the game may not be
+                # on primary: TFTCOACH_MONITOR=N overrides (mss numbering,
+                # 1 = primary).
+                img = self._fn_screen(config.GAME_MONITOR)
             except Exception:
                 img = None
             if isinstance(img, str) and img and os.path.exists(img):
@@ -785,6 +789,11 @@ class CoachApp:
         lobby client — 'LeagueClient' runs all day; the game process only
         exists in a match)."""
         try:
+            if IS_WIN:
+                out = subprocess.run(
+                    ["tasklist", "/FI", "IMAGENAME eq League of Legends.exe",
+                     "/NH"], capture_output=True, text=True, timeout=8)
+                return "League of Legends.exe" in (out.stdout or "")
             out = subprocess.run(["pgrep", "-if", "League of Legends"],
                                  capture_output=True, text=True, timeout=5)
             return bool(out.stdout.strip())
@@ -1253,7 +1262,20 @@ def _second_screen_geometry() -> Optional[str]:
     convert. Single display -> None (compact overlay behaviour unchanged).
     """
     if not IS_MAC:
-        return None
+        # Windows/Linux: mss enumerates monitors in virtual-screen coords,
+        # which is exactly what Tk geometry strings accept (negative ok).
+        try:
+            import mss
+            with mss.mss() as sct:
+                mons = sct.monitors           # [0]=virtual union, [1]=primary
+            if len(mons) < 3:                 # primary only -> compact overlay
+                return None
+            others = mons[2:]
+            target = max(others, key=lambda m: m["width"] * m["height"])
+            return "%dx%d+%d+%d" % (target["width"], target["height"] - 40,
+                                    target["left"], target["top"])
+        except Exception:
+            return None
     try:
         import AppKit
         screens = AppKit.NSScreen.screens()

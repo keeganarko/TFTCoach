@@ -50,6 +50,13 @@ FULLFRAME_FALLBACK = True    # if uncalibrated, fall back to v2 whole-screen vis
 
 DEFAULT_TARGET_RES = (1920, 1080)
 
+# Which display the GAME is on (mss numbering: 1 = primary). Multi-monitor
+# desktops set TFTCOACH_MONITOR=2/3 when League lives on a secondary display.
+try:
+    GAME_MONITOR = int(os.environ.get("TFTCOACH_MONITOR", "1"))
+except ValueError:
+    GAME_MONITOR = 1
+
 
 class Regions:
     """Loads/saves regions.json. Rects are pixel [x, y, w, h] plus the
